@@ -60,8 +60,8 @@ namespace TimeSheetManagementSystem.APIs
         public IActionResult GetOneTimeSheetDetailData(int id)
         {
             var oneTimeSheetDetail = Database.TimeSheetDetails
-                     .Where(input => input.TimeSheetDetailId ==
-                               id)
+                     .Where(input => input.TimeSheetDetailId == id)
+                     .Include(input => input.TimeSheetDetailSignature)
                      .AsNoTracking().Single();
 
             var formatedTimeSheetDetail = new
@@ -81,7 +81,9 @@ namespace TimeSheetManagementSystem.APIs
                 ratePerHour = oneTimeSheetDetail.RatePerHour,
                 customerAccountName = oneTimeSheetDetail.AccountName,
                 sessionSynopsisNames = oneTimeSheetDetail.SessionSynopsisNames,
-                status = (oneTimeSheetDetail.TimeSheetDetailSignature != null) ? "done" : "not updated"
+                status = oneTimeSheetDetail.TimeSheetDetailSignature == null ? "no_signature" : "updated"
+                                    //imgResult = oneTimeSheetDetail.TimeSheetDetailSignature == null ? signatureImg : oneTimeSheetDetail.TimeSheetDetailSignature.Signature
+
             };
 
             return new JsonResult(formatedTimeSheetDetail);
@@ -161,7 +163,7 @@ namespace TimeSheetManagementSystem.APIs
                                                 ratePerHour = e.RatePerHour,
                                                 customerAccountName = e.AccountName,
                                                 sessionSynopsisNames = e.SessionSynopsisNames,
-                                                status = (e.TimeInInMinutes != null) ? "done" : "not updated"
+                                                status = (e.TimeInInMinutes != null) ? "updated time in/out" : "not updated"
                                             }
                    into temp
                                             orderby temp.dateOfLesson ascending

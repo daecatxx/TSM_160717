@@ -15,7 +15,20 @@
         </div>
         <div class="panel-body">
             <form id="dataForm" name="dataForm" role="form" class="form-horizontal">
-
+                <div class="form-group">
+                    @*<label class="control-label col-md-3"></label>*@
+                    
+                        <div class="col-md-offset-1 col-md-12" id="unableToEditMsg" style="color:red">
+                            Signature has been given, unable to edit Time-In/Out
+                            @*<div class="col-md-4">
+                                    <div class="input-group bootstrap-timepicker timepicker">
+                                        <input id="timeInInput" name="timeInInput" v-model="actualTimeInHHMM" type="text" class="form-control input-lg">
+                                        <span class="input-group-addon"><i class="glyphicon glyphicon-time"></i></span>
+                                    </div>
+                                </div>*@
+                        
+                    </div>
+                </div>
                 <div class="form-group">
                     <label class="control-label col-md-3" for="timeInInput">Time In</label>
                     <div class="col-md-4">
@@ -34,15 +47,17 @@
                         </div>
                     </div>
                 </div>
-                @*<div class="form-group">
-                    <label class="control-label col-lg-3" for="sessionSynopsisNamesInput">Session Synopsis</label>
-                    <div class="col-lg-6">
 
-                        <div id="sessionSynopsisNamesInput" class="input-group">
 
+                <div class="form-group">
+                        <label class="control-label col-lg-3" for="sessionSynopsisNamesInput">Session Synopsis</label>
+                        <div class="col-lg-6">
+
+                            <div id="sessionSynopsisNamesInput" class="input-group">
+
+                            </div>
                         </div>
                     </div>
-                </div>*@
                 <div class="form-group col-md-12">
                     <label class="control-label col-md-1"></label>
                     <div class="col-md-10">
@@ -76,6 +91,9 @@
 
         $.material.init(); //Surprisingly, I need to place this command here so that it can work.
 
+
+
+
         function getIdFromAddressBar() {
             var urlArray = window.location.href.split('/');
             var id = urlArray[urlArray.length - 1];
@@ -93,17 +111,17 @@
             mounted() {
 
 
-                //$("#sessionSynopsisNamesInput").on('change', function (event) {
-                //    var items = $("#sessionSynopsisNamesInput").jqxComboBox('getSelectedItems');
-                //    var selectedItems = [];
-                //    $.each(items, function (index) {
-                //        selectedItems.push(this.label);
-                //    });
+                $("#sessionSynopsisNamesInput").on('change', function (event) {
+                    var items = $("#sessionSynopsisNamesInput").jqxComboBox('getSelectedItems');
+                    var selectedItems = [];
+                    $.each(items, function (index) {
+                        selectedItems.push(this.label);
+                    });
 
-                //    sessionSynopsisIdArray = selectedItems;
+                    sessionSynopsisIdArray = selectedItems;
 
-                //});
-                //this.setupSessionSynopsisNamesListBox();
+                });
+                this.setupSessionSynopsisNamesListBox();
                 this.loadOneTimeSheetDetailData();
 
             },
@@ -187,63 +205,92 @@
                     });
                     $requestTracker.done(function (data) {
                         console.dir(data);
-
+                        console.dir("status:" + data.status);
+                                                
                         that.$root._data.timeSheetDetailData = data;
                         that.$root._data.actualTimeInHHMM = data.actualTimeInHHMM;
                         that.$root._data.actualTimeOutHHMM = data.actualTimeOutHHMM;
 
-                        //var tsd = data.sessionSynopsisNames;
-                        //var splitOutComma = tsd.split(',');
-                        //var selectedItems = '';
+
+                        if (data.status != "no_signature") {
+
+                            $("#dataForm input").prop("disabled", true);
+                            //$("#dataForm").hide();
+
+                            //console.dir("dataform is hidden");
+                        }
+                        else {
+                            $("#unableToEditMsg").hide();
+                            console.dir("no signature, dataform is shown with updatable inputs");
+                        }
 
 
-
-
-                        //console.dir("get ss:" + tsd);
+                        
+ //console.dir("get ss:" + tsd);
                         ////that.$root._data.actualTimeOutHHMM
                         //for (index = 0; index < splitOutComma.length; index++) {
 
                         //    selectedItems= $("#sessionSynopsisNamesInput").jqxComboBox('getSelectedItems',splitOutComma);
 
-                          
+
                         //}
                         //console.dir("items selected:"+selectedItems);
+
+                        //var
+                        //var brand = data;
+                        //var brandCategory = brand.brandCategory;
+                        //var brandName = brand.brandName;
+                        //var imageUrl = brand.imageUrl;
+
+                        var ss = data.sessionSynopsisNames;
+                        var ssArray = ss.split(',');
+                        console.dir(ss);
+                        var selectedItems = '';
+
+                       
+                        for (var i = 0; i < ssArray.length; i++) {
+                            var getSessionSynopsisNames = ssArray[i].sessionSynopsisNames;
+
+                            $("#sessionSynopsisNamesInput").jqxComboBox('selectItem', that.$root._data.sessionSynopsisNames);
+                        }
+
+
                     });
 
                 },
-                //setupSessionSynopsisNamesListBox: function () {
+                setupSessionSynopsisNamesListBox: function () {
 
-                //    var $loadSessionSynopsisNamesHandler = jQuery.ajax({
-                //        contentType: 'application/json',
-                //        method: 'get',
-                //        url: '/api/SessionSynopses/GetSessionSynopsesForControls',
+                    var $loadSessionSynopsisNamesHandler = jQuery.ajax({
+                        contentType: 'application/json',
+                        method: 'get',
+                        url: '/api/SessionSynopses/GetSessionSynopsesForControls',
 
-                //    });
+                    });
 
-                //    $loadSessionSynopsisNamesHandler.done(function (data, textStatus, jqXHR) {
-                //        console.dir(data);
-                //        var sessionSynopsisList = data;
-                //        $("#sessionSynopsisNamesInput").jqxComboBox({
-                //            source: sessionSynopsisList, multiSelect: true,
-                //            width: 250, height: 30,
-                //            displayMember: 'sessionSynopsisName',
-                //            valueMember: 'sessionSynopsisName'
-                //        });
+                    $loadSessionSynopsisNamesHandler.done(function (data, textStatus, jqXHR) {
+                        console.dir(data);
+                        var sessionSynopsisList = data;
+                        $("#sessionSynopsisNamesInput").jqxComboBox({
+                            source: sessionSynopsisList, multiSelect: true,
+                            width: 250, height: 30,
+                            displayMember: 'sessionSynopsisName',
+                            valueMember: 'sessionSynopsisName'
+                        });
 
 
-                //        $loadSessionSynopsisNamesHandler.fail(function (data, textStatus, jqXHR) {
-                //            var errMsg = data.responseJSON.message
-                //            noty({
-                //                text: errMsg,
-                //                type: 'error',
-                //                layout: 'center',
-                //                template: '<div class="noty_message"><span class="noty_text"></span>'
+                        $loadSessionSynopsisNamesHandler.fail(function (data, textStatus, jqXHR) {
+                            var errMsg = data.responseJSON.message
+                            noty({
+                                text: errMsg,
+                                type: 'error',
+                                layout: 'center',
+                                template: '<div class="noty_message"><span class="noty_text"></span>'
 
-                //            }); //end of noty
-                //        });
+                            }); //end of noty
+                        });
 
-                //    });
-                //},
+                    });
+                },
             }
         });
 
