@@ -1,0 +1,525 @@
+﻿
+<style>
+    .wrap {
+        display: inline-block;
+    }
+</style>
+
+<div class="col-md-offset-2 col-md-8" id="timeInTimeOutControlPanel">
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            <div class="panel-title"><h3>Providing signature for <u>{{moment(timeSheetDetailData.dateOfLesson).format("DD/MM/YYYY dddd")}}</u> at {{timeSheetDetailData.customerAccountName}} from {{timeSheetDetailData.officialTimeInHHMM}} to {{timeSheetDetailData.officialTimeOutHHMM}}</h3></div>
+
+            @*<div class="panel-title"><h3>Signature for <u> {{moment(oneTimeSheetDetailData.dateOfLesson).format("DD/MM/YYYY dddd")}}</u> at {{oneTimeSheetDetailData.customerAccountName}} from {{oneTimeSheetDetailData.officialTimeInHHMM}} to {{oneTimeSheetDetailData.officialTimeOutHHMM}}</h3></div>*@
+        </div>
+        <div class="panel-body">
+            <form id="dataForm" name="dataForm" role="form" class="form-horizontal">
+
+
+                <div class="form-group">
+
+                    <label class="control-label col-lg-3" for="accountNameInput">Account Name</label>
+                    <div class="col-lg-6">
+                        <div id="accountNameInput">
+                            {{timeSheetDetailData.customerAccountName}}
+                        </div>
+
+                        @*<select id="accountNameInput" class="form-control input-lg">
+                            </select>*@
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    @*<div class="wrap">*@
+                        <label class="control-label col-lg-3" for="actualTimeInHHMM">Time In and Out</label>
+                        <div class="col-lg-6">
+                            <div id="actualTimeInHHMM">
+                                From {{timeSheetDetailData.actualTimeInHHMM}} to {{timeSheetDetailData.actualTimeOutHHMM}}
+
+
+                            </div>
+                       @* </div>
+    <label class="control-label col-lg-3 timeOut" for="actualTimeOutHHMM">Time Out</label>
+        <div class="col-lg-6">
+            <div id="actualTimeOutHHMM">
+                {{timeSheetDetailData.actualTimeOutHHMM}}
+            </div>
+        </div>*@
+                        @*<div class="wrap">
+                                <label class="control-label col-lg-3 timeOut" for="actualTimeOutHHMM">Time Out</label>
+                                <div class="col-lg-6">
+                                    <div id="actualTimeOutHHMM">
+                                        {{timeSheetDetailData.actualTimeOutHHMM}}
+                                    </div>
+                                </div>
+                            </div>*@
+                    </div>
+                </div>
+
+                @*<select id="accountNameInput" class="form-control input-lg">
+                    </select>*@
+
+
+
+
+                @*<div class="form-group">
+                        <label class="control-label col-md-3" for="timeInInput">Time In</label>
+                        <div class="col-md-4">
+                            <div class="input-group bootstrap-timepicker timepicker">
+
+                                <input id="timeInInput" name="timeInInput" v-model="actualTimeInHHMM" type="text" class="form-control input-lg">
+                                <span class="input-group-addon"><i class="glyphicon glyphicon-time"></i></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-3" for="timeOutInput">Time Out </label>
+                        <div class="col-md-4">
+                            <div class="input-group bootstrap-timepicker timepicker">
+                                <input id="timeOutInput" name="timeOutInput" v-model="actualTimeOutHHMM" type="text" class="form-control input-lg">
+                                <span class="input-group-addon"><i class="glyphicon glyphicon-time"></i></span>
+                            </div>
+                        </div>
+                    </div>*@
+                <div class="form-group">
+                    <label class="control-label col-lg-3">Signature</label>
+                    <div class="col-lg-6">
+                        <img id="loadImg" style="border:2px solid #546e7a; width:75%;height:75%;" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div id="signature_pad" class="m-signature-pad">
+
+                        <div id="testing" class="m-signature-pad--body">
+                            <canvas id="canvas" style="width:75%;height:300px;border:solid;"></canvas>
+                        </div>
+                        <div class="m-signature-pad--footer">
+                            <div class="form-group">
+                                <div class="col-lg-12">
+
+                                    <div class="pull-left">
+                                        <button type="button" class="btn btn-default" data-action="clear">Clear</button>
+                                        <div class="pull-right">
+                                            <input type="button" class="btn btn-primary" value="Save" @@click.prevent="submitForm" id="saveButton" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="form-group">
+                    <div class="col-lg-12"> 
+
+                        <div class="pull-left">
+                                <button id="goToManageTimeInTimeOutDataLink" class="btn btn-default" asp-action="ManageTimeInTimeOutData" asp-controler="TimeInTimeOutData">
+                               Go Back
+                            </button>
+                            @*<div class="pull-right">
+                                    <input type="button" class="btn btn-primary" value="Save" @@click.prevent="submitForm" id="saveButton" />
+                                </div>*@
+                        </div>
+                    </div>
+                </div>
+
+
+
+                <div>
+                    <canvas id="canvas_blank" style="position:absolute;width:150px;height:150px;display:none;"></canvas>
+
+                </div>
+
+            </form>
+        </div><!-- end of div element which has the class="panel-body" -->
+    </div><!-- end of the div element which has the class="panel" -->
+</div><!-- end of the div element which has class="col-md-offset-2 col-md-8" -->
+
+@section scripts{
+    <link href="~/lib/signature_pad/example/css/signature-pad.css" rel="stylesheet" />
+    <script src="~/lib/signature_pad/dist/signature_pad.js"></script>
+
+
+    <script>
+
+        //Reference: http://fezvrasta.github.io/bootstrap-material-design/#getting-started
+        //window.sessionSynopsisNamesArray = [];
+
+        window.timeSheetDetailId = getIdFromAddressBar();
+        console.dir(window.timeSheetDetailId);
+        $.material.init(); //Surprisingly, I need to place this command here so that it can work.
+        window.$testing = $("#testing");
+        var drag = $("#loadImg");
+
+        drag.hide();
+        function getIdFromAddressBar() {
+            var urlArray = window.location.href.split('/');
+            var id = urlArray[urlArray.length - 1];
+            return id;
+        };
+
+        var wrapper = document.getElementById("signature_pad"),
+            canvas = wrapper.querySelector("canvas"),
+            signaturePad;
+        //var blankCanvas
+
+        var canvasUrl = '/API/TimeInTimeOutData/GetSignatureImageByTimeSheetDetailId/' + window.timeSheetDetailId;
+
+
+        var imgSignatureArr = [];
+
+        var signatureImg;
+
+        $('#goToManageTimeInTimeOutDataLink').attr('href', '/TimeInTimeOutData/ManageTimeInTimeOutData/');
+
+        var vm = new Vue({
+            //console.log(this.$route.params);
+            el: '#timeInTimeOutControlPanel',
+            data: {
+
+                //dateOfLesson: '', customerAccountName: '', officialTimeInHHMM: '', officialTimeOutHHMM: '',
+                //sessionSynopsisNamesArray: '' },
+                timeSheetDetailData: {
+                    timeSheetDetailId: '',
+                    dateOfLesson: '',
+                    customerAccountName: '',
+                    officialTimeInHHMM: '',
+                    officialTimeOutHHMM: '',
+                    sessionSynopsisNames: '',
+                    actualTimeInHHMM: '',
+                    actualTimeOutHHMM: '',
+                },
+
+                moment: moment,
+
+                message: '',
+                context: '',
+                //snackbar: false, /*This property make the snackbar appear */
+                //timeOut: 3000,
+
+                //actualTimeInHHMM: '',
+                //actualTimeOutHHMM: '',
+
+            },
+            //props: ['sessionSynopsisNamesArray', 'comments', 'customerAccountName', 'dateOfLesson', 'officialTimeInHHMM', 'officialTimeOutHHMM', 'actualTimeIn', 'actualTimeOut', 'signedStatus', 'timeSheetDetailId'],
+            //props: ['comments', 'customerAccountName', 'dateOfLesson', 'actualTimeInHHMM', 'actualTimeOutHHMM', 'officialTimeInHHMM', 'officialTimeOutHHMM', 'actualTimeIn', 'actualTimeOut', 'status', /*'timeSheetDetailId'*/],
+
+            mounted() {
+                this.loadOneTimeSheetDetailData();
+                this.prepareSignaturePad();
+
+                //this.validateSignatureCanvas();
+
+                this.checkForSignature();
+
+
+            },
+            computed: {
+                //imageUrl: function () {
+
+                //    url = '/API/TimeInTimeOutData/GetSignatureImageByTimeSheetDetailId/' + window.timeSheetDetailId;
+                //    console.log(url);
+                //    return url;
+
+                //},
+
+
+
+            },
+            watch: {
+
+            },
+            methods: {
+
+                checkForSignature: function () {
+
+
+                    $checkExistingSignature = jQuery.ajax({
+                        type: 'GET',
+                        beforeSend: function (xhr) {
+                            xhr.setRequestHeader('RequestVerificationToken', $('input[name=__RequestVerificationToken]').val());
+                        },
+                        url: '/API/TimeInTimeOutData/GetSignatureImageByTimeSheetDetailId/' + window.timeSheetDetailId,
+                        dataType: 'json',
+                        contentType: 'application/json',
+
+
+                    });
+
+                    $checkExistingSignature.done(function (data) {
+
+
+                        console.dir(data);
+
+                        if (data.imgResult) {
+                            //TK WAS HERE. THIS CHECKS WHETHER THE VALUE IS A TRUTHY VALUE OR A FALSY VALUE.
+                            //FALSY VALUES ARE THINGS LIKE "", undefined, exception, null, false
+                            //however, this is not good enough to counter strings with whitespaces.
+                            $("#signature_pad").hide();
+                            console.dir("result:" + data.imgResult);
+                            var load = $("#loadImg");
+                            //document.getElementById("loadImg");
+                            load.attr('src', 'data:image/png;base64,' + data.imgResult);
+                            load.show();
+
+                            //$("#backBtn").show();
+
+                        }
+                        else {
+                            //$("#canvas").show();
+                            //this.prepareSignaturePad();
+                            //conssole.dir("no img:" + data  );
+                            console.dir(data.imgResult);
+                            console.dir("no img here");
+                        }
+                    });
+
+
+                },
+
+
+
+
+
+                getWeekDayName: function (inWeedDayNumber) {
+                    var dayNameList = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday',
+                        'Saturday'];
+                    console.log(dayNameList[inWeedDayNumber]);
+                    return dayNameList[inWeedDayNumber];
+                },
+                getTimeFromMins: function (mins) {
+                    //https://stackoverflow.com/questions/36035598/how-to-convert-minutes-to-hours-using-moment-js
+                    // Do not include the first validation check if you want, for example,
+                    // getTimeFromMins(1530) to equal getTimeFromMins(90) (i.e. mins rollover)
+                    if (mins >= 24 * 60 || mins < 0) {
+                        throw new RangeError("Valid input should be greater than or equal to 0 and less than 1440.");
+                    }
+                    var h = mins / 60 | 0,
+                        m = mins % 60 | 0;
+                    return moment.utc().hours(h).minutes(m).format("hh:mm A");
+                },
+                loadOneTimeSheetDetailData: function () {
+                    var that = this;
+                    $requestTracker = jQuery.ajax({
+                        type: 'GET',
+                        beforeSend: function (xhr) {
+                            xhr.setRequestHeader('RequestVerificationToken', $('input[name=__RequestVerificationToken]').val());
+                        },
+                        url: '/API/TimeInTimeOutData/GetOneTimeSheetDetailData/' + window.timeSheetDetailId,
+                        dataType: 'json',
+                        contentType: 'application/json'
+                    });
+                    $requestTracker.done(function (data) {
+                        console.dir(data);
+                        that.$root._data.timeSheetDetailData = data;
+                        that.$root._data.actualTimeInHHMM = data.actualTimeInHHMM;
+                        that.$root._data.actualTimeOutHHMM = data.actualTimeOutHHMM;
+                        //that.$root._data.sessionSynopsisNames = data.sessionSynopsisNames;
+
+                        console.dir(data.sessionSynopsisNames)
+                        //sessionSynopsis
+                        //console.dir(sessionSynopsisNames);
+
+                    });
+
+                },
+                prepareSignaturePad: function () {
+                    var that = this;
+                    // Adjust canvas coordinate space taking into account pixel ratio,
+                    // to make it look crisp on mobile devices.
+                    // This also causes canvas to be cleared.
+                    function resizeCanvas() {
+                        // When zoomed out to less than 100%, for some very strange reason,
+                        // some browsers report devicePixelRatio as less than 1
+                        // and only part of the canvas is cleared then.
+
+                        var ratio = Math.max(window.devicePixelRatio || 1, 1);
+                        canvas.width = canvas.offsetWidth * ratio;
+                        canvas.height = canvas.offsetHeight * ratio;
+                        canvas.getContext("2d").scale(ratio, ratio);
+
+                        //var ratio = Math.max(window.devicePixelRatio || 1, 1);
+                        //canvas.width = window.innerWidth;
+                        //canvas.height = window.innerHeight;
+
+
+                        //The following five lines of code are additional.
+                        //When the logic resizes the visible canvas, I need the hidden
+                        //canvas to resize too. Or else cannot do comparison to check for
+                        //empty signature.
+                        var blank_canvas;
+                        blank_canvas = that.$el.querySelector('#canvas_blank');
+                        blank_canvas.width = canvas.offsetWidth * ratio;
+                        blank_canvas.height = canvas.offsetHeight * ratio;
+                        blank_canvas.getContext("2d").scale(ratio, ratio);
+
+                    }/*resizeCanvas*/
+
+                    //Don't remove the <v-container>. Removing it will give problems on finding the signature_pad
+                    var wrapper = document.getElementById("signature_pad"),
+                        clearButton = wrapper.querySelector("[data-action=clear]"),
+                        savePNGButton = wrapper.querySelector("[data-action=save-png]"),
+                        saveSVGButton = wrapper.querySelector("[data-action=save-svg]"),
+                        canvas = wrapper.querySelector("canvas"),
+                        signaturePad;
+
+
+                    /*Double checking if I can reference these elements using the above statement*/
+                    console.dir(canvas);
+                    console.dir(wrapper);
+
+
+                    var wasScaled = false;
+                    window.addEventListener("orientationchange", function () {
+                        if (!wasScaled && window.orientation == 90) {
+                            resizeCanvas();
+                            wasScaled = true;
+                        }
+                    });
+
+                    resizeCanvas();
+
+                    signaturePad = new SignaturePad(canvas);
+                    clearButton.addEventListener("click", function (event) {
+                        signaturePad.clear();
+                    });
+
+
+                },
+                validateSignatureCanvas: function () {
+                    //Return false if the canvas_blank <canvas> element (which is hidden inside the template) is the
+                    //same as the canvas element used by the user. False means empty signature. True means, signature is not empty.
+                    //console.log('comparing signature : ' + (this.$el.querySelector('#canvas').toDataURL() == this.$el.querySelector('#canvas_blank').toDataURL()) )
+                    //console.log(this.$el.querySelector('#canvas').toDataURL());
+                    //console.log(this.$el.querySelector('#canvas_blank').toDataURL());
+                    //Return true if the canvas has digital data. Return false otherwise
+                    //http://jsfiddle.net/amaan/rX572/
+
+                    //signaturePad = new SignaturePad(canvas);
+
+                    console.dir("aaa");
+
+                    var myCanvas = document.getElementById("canvas");
+                    var blankCanvas = document.getElementById("canvas_blank");
+
+
+                    var canvasDataUrl = myCanvas.toDataURL();
+                    //signaturePad.toDataURL(myCanvas);
+
+                    //signaturePad.toDataURL(myCanvas);
+
+                    console.log(canvasDataUrl);
+
+                    console.dir("bbb");
+
+                    var blankCanvasDataUrl = blankCanvas.toDataURL();
+
+
+                    console.log(blankCanvasDataUrl);
+
+
+                    if (canvasDataUrl == blankCanvasDataUrl)
+                        return false;
+                    else
+                        return true;
+
+                    console.log(canvasDataUrl);
+                    console.log(blankCanvasDataUrl);
+                },
+
+                submitForm: function () {
+
+                    this.validateSignatureCanvas();
+
+                    console.log()
+
+
+
+                    if (this.validateSignatureCanvas() == false) {
+                        var contextMsg = 'The signature is empty. Try again.';
+                        //alert.message = 'The signature is empty. Try again.';
+                        //this.snackbar = true;
+
+                        new Noty({
+                            text: contextMsg, type: 'error', layout: 'center',
+                            //callbacks: {
+                            //    //onClose: function () {
+                            //    //    refreshPage();
+                            //        //thi();
+                            //    },
+
+                        }).show();
+
+                        return false;
+                    }
+                    var parent = this;
+                    var parentComponentContainer = this.$el;
+
+                    var canvasElement = document.getElementById('canvas');
+                    var image = canvasElement.toDataURL("image/png");
+                    image = image.replace('data:image/png;base64,', '');
+
+                    console.dir(window.timeSheetDetailId);
+
+                    //Using the following code to check if I can read the CSRF value.
+                    //console.log('csrf value: ' + $('input[name=__RequestVerificationToken]').val());
+                    $.ajax({
+                        type: 'POST',
+                        url: '/API/TimeInTimeOutData/CreateTimeInTimeOutDataSignature',
+                        data:
+                        {
+                            signatureImage: image,
+                            timeSheetDetailId: window.timeSheetDetailId
+                        },
+                        contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
+                        beforeSend: function (xhr) {
+                            xhr.setRequestHeader('RequestVerificationToken', $('input[name=__RequestVerificationToken]').val());
+                        },
+                        dataType: 'json'
+                    }).done(function (data) {
+
+                        new Noty({
+                            text: data.message, type: 'success', layout: 'center',
+                            callbacks: {
+                                onClose: function () {
+                                    refreshPage();
+                                    //thi();
+                                },
+                            },
+                        }).show();
+
+
+                        console.dir(data);
+                        console.log("success");
+                        //parent.context = 'success';
+                        //parent.message = 'Signature is saved.';
+                        //parent.snackbar = true;
+                    }).fail(function (data) {
+                        new Noty({
+                            text: data.message, type: 'error', layout: 'center',
+                        });
+
+
+                    });
+
+                }/*end of submitForm*/,
+
+
+
+
+
+
+            },
+        });
+
+        function refreshPage() {
+            location.reload();
+        }
+        function redirect() {
+            window.location.replace('/TimeInTimeOutData/ManageTimeInTimeOutData');
+        }
+
+    </script>
+
+}

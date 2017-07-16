@@ -1,0 +1,759 @@
+﻿<style>
+    .bootstrap-timepicker-widget.dropdown-menu {
+        width: 225px;
+        height: 140px;
+    }
+</style>
+
+
+
+
+<div class="col-md-offset-2 col-md-8" id="timeInTimeOutControlPanel">
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            <div class="panel-title"><h3>Providing time-in time-out for <u>{{moment(timeSheetDetailData.dateOfLesson).format("DD/MM/YYYY dddd")}}</u> at {{timeSheetDetailData.customerAccountName}} from {{timeSheetDetailData.officialTimeInHHMM}} to {{timeSheetDetailData.officialTimeOutHHMM}}</h3></div>
+        </div>
+        <div class="panel-body">
+            <form id="dataForm" name="dataForm" role="form" class="form-horizontal">
+
+                <div class="form-group">
+                    <label class="control-label col-md-3" for="timeInInput">Time In</label>
+                    <div class="col-md-4">
+                        <div class="input-group bootstrap-timepicker timepicker">
+                            <input id="timeInInput" name="timeInInput" v-model="actualTimeInHHMM" type="text" class="form-control input-lg">
+                            <span class="input-group-addon"><i class="glyphicon glyphicon-time"></i></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label col-md-3" for="timeOutInput">Time Out </label>
+                    <div class="col-md-4">
+                        <div class="input-group bootstrap-timepicker timepicker">
+                            <input id="timeOutInput" name="timeOutInput" v-model="actualTimeOutHHMM" type="text" class="form-control input-lg">
+                            <span class="input-group-addon"><i class="glyphicon glyphicon-time"></i></span>
+                        </div>
+                    </div>
+                </div>
+                @*<div class="form-group">
+                    <label class="control-label col-lg-3" for="sessionSynopsisNamesInput">Session Synopsis</label>
+                    <div class="col-lg-6">
+
+                        <div id="sessionSynopsisNamesInput" class="input-group">
+
+                        </div>
+                    </div>
+                </div>*@
+                <div class="form-group col-md-12">
+                    <label class="control-label col-md-1"></label>
+                    <div class="col-md-10">
+                        <div class="pull-right">
+                            <input type="button" class="btn btn-primary" value="Save" @@click.prevent="updateTimeSheetDetail" id="saveButton" />
+                            <a id="goToManageAccountDetailLink" class="btn btn-default" asp-action="ManageTimeInTimeOutData" asp-controler="TimeInTimeOutData">Cancel</a>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div><!-- end of div element which has the class="panel-body" -->
+    </div><!-- end of the div element which has the class="panel" -->
+</div><!-- end of the div element which has class="col-md-offset-2 col-md-8" -->
+
+@section scripts{
+    <!-- Material Design fonts -->
+    <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Roboto:300,400,500,700">
+    <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/icon?family=Material+Icons">
+    <link href="~/lib/bootstrap-material-design/dist/css/bootstrap-material-design.css" rel="stylesheet" />
+    <link href="~/lib/bootstrap-material-design/dist/css/ripples.css" rel="stylesheet" />
+    <link rel="stylesheet" type="text/css" href="~/lib/bootstrap-timepicker/css/timepicker.css" />
+    <script src="~/lib/bootstrap-timepicker/js/bootstrap-timepicker.js"></script>
+    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="~/lib/bootstrap-material-design/dist/js/material.js"></script>
+    <script src="~/lib/bootstrap-material-design/dist/js/ripples.js"></script>
+
+    <script>
+        window.timeSheetDetailId = getIdFromAddressBar();
+        //Reference: http://fezvrasta.github.io/bootstrap-material-design/#getting-started
+
+        $.material.init(); //Surprisingly, I need to place this command here so that it can work.
+
+        function getIdFromAddressBar() {
+            var urlArray = window.location.href.split('/');
+            var id = urlArray[urlArray.length - 1];
+            return id;
+        };
+        var vm = new Vue({
+            el: '#timeInTimeOutControlPanel',
+            data: {
+                timeSheetDetailData: { timeSheetDetailId: '', dateOfLesson: '', customerAccountName: '', officialTimeInHHMM: '', officialTimeOutHHMM: '', },
+                moment: moment,
+                actualTimeInHHMM: '',
+                actualTimeOutHHMM: '',
+                sessionSynopsisNames: '',
+            },
+            mounted() {
+
+
+                //$("#sessionSynopsisNamesInput").on('change', function (event) {
+                //    var items = $("#sessionSynopsisNamesInput").jqxComboBox('getSelectedItems');
+                //    var selectedItems = [];
+                //    $.each(items, function (index) {
+                //        selectedItems.push(this.label);
+                //    });
+
+                //    sessionSynopsisIdArray = selectedItems;
+
+                //});
+                //this.setupSessionSynopsisNamesListBox();
+                this.loadOneTimeSheetDetailData();
+
+            },
+            computed: {
+            },
+            watch: {
+
+            },
+            methods: {
+                updateTimeSheetDetail: function () {
+                    var that = this;
+                    console.log('Save button is clicked');
+                    if ($('#dataForm').valid() == true) {
+
+                        $saveDataHandler = jQuery.ajax({
+                            type: 'PUT',
+                            url: '/API/TimeInTimeOutData/UpdateTimeInTimeOutData',
+                            dataType: 'json',
+                            beforeSend: function (xhr) {
+                                xhr.setRequestHeader('RequestVerificationToken', $('input[name=__RequestVerificationToken]').val());
+                            },
+                            data: /*function(mins)*/{
+                                actualTimeIn: $("#timeInInput").val(),
+                                actualTimeOut: $("#timeOutInput").val(),
+                                //sessionSynopsisNames: $("#sessionSynopsisNamesInput").val(sessionSynopsisIdArray),
+                                timeSheetDetailId: that.$root._data.timeSheetDetailData.timeSheetDetailId
+                            },
+                            contentType: 'application/x-www-form-urlencoded',
+                        });//end of jQuery.ajax() method call
+                        $saveDataHandler.done(function (data, textStatus, jqXHR) {
+                            new Noty({
+                                text: data.message, type: 'success', layout: 'center',
+                                callbacks: {
+                                    onClose: function () {
+                                        redirect();
+                                    },
+                                },
+                            }).show();
+                        });//end of saveDataHandler.done(...)
+                        $saveDataHandler.fail(function (data, textStatus, jqXHR) {
+                            //var infoFromServer = data.responseJSON.message;
+                            new Noty({
+
+                                text: data.message, type: 'error',
+                                layout: 'center',
+                                //onTemplate: function () {
+                                //    this.barDom.innerHTML = '<div class="noty_body">' + this.options.text + '</div>';
+                                //    // Important: .noty_body class is required for setText API method.
+                                //}
+                            }).show();//end of new Noty()
+                        });//end of $saveDataHandler.fail()
+                    }
+                },
+                getWeekDayName: function (inWeedDayNumber) {
+                    var dayNameList = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday',
+                        'Saturday'];
+                    console.log(dayNameList[inWeedDayNumber]);
+                    return dayNameList[inWeedDayNumber];
+                },
+                getTimeFromMins: function (mins) {
+                    //https://stackoverflow.com/questions/36035598/how-to-convert-minutes-to-hours-using-moment-js
+                    // Do not include the first validation check if you want, for example,
+                    // getTimeFromMins(1530) to equal getTimeFromMins(90) (i.e. mins rollover)
+                    if (mins >= 24 * 60 || mins < 0) {
+                        throw new RangeError("Valid input should be greater than or equal to 0 and less than 1440.");
+                    }
+                    var h = mins / 60 | 0,
+                        m = mins % 60 | 0;
+                    return moment.utc().hours(h).minutes(m).format("hh:mm A");
+                },
+                loadOneTimeSheetDetailData: function () {
+                    var that = this;
+                    $requestTracker = jQuery.ajax({
+                        type: 'GET',
+                        beforeSend: function (xhr) {
+                            xhr.setRequestHeader('RequestVerificationToken', $('input[name=__RequestVerificationToken]').val());
+                        },
+                        url: '/API/TimeInTimeOutData/GetOneTimeSheetDetailData/' + window.timeSheetDetailId,
+                        dataType: 'json',
+                        contentType: 'application/json'
+                    });
+                    $requestTracker.done(function (data) {
+                        console.dir(data);
+
+                        that.$root._data.timeSheetDetailData = data;
+                        that.$root._data.actualTimeInHHMM = data.actualTimeInHHMM;
+                        that.$root._data.actualTimeOutHHMM = data.actualTimeOutHHMM;
+
+                        //var tsd = data.sessionSynopsisNames;
+                        //var splitOutComma = tsd.split(',');
+                        //var selectedItems = '';
+
+
+
+
+                        //console.dir("get ss:" + tsd);
+                        ////that.$root._data.actualTimeOutHHMM
+                        //for (index = 0; index < splitOutComma.length; index++) {
+
+                        //    selectedItems= $("#sessionSynopsisNamesInput").jqxComboBox('getSelectedItems',splitOutComma);
+
+                          
+                        //}
+                        //console.dir("items selected:"+selectedItems);
+                    });
+
+                },
+                //setupSessionSynopsisNamesListBox: function () {
+
+                //    var $loadSessionSynopsisNamesHandler = jQuery.ajax({
+                //        contentType: 'application/json',
+                //        method: 'get',
+                //        url: '/api/SessionSynopses/GetSessionSynopsesForControls',
+
+                //    });
+
+                //    $loadSessionSynopsisNamesHandler.done(function (data, textStatus, jqXHR) {
+                //        console.dir(data);
+                //        var sessionSynopsisList = data;
+                //        $("#sessionSynopsisNamesInput").jqxComboBox({
+                //            source: sessionSynopsisList, multiSelect: true,
+                //            width: 250, height: 30,
+                //            displayMember: 'sessionSynopsisName',
+                //            valueMember: 'sessionSynopsisName'
+                //        });
+
+
+                //        $loadSessionSynopsisNamesHandler.fail(function (data, textStatus, jqXHR) {
+                //            var errMsg = data.responseJSON.message
+                //            noty({
+                //                text: errMsg,
+                //                type: 'error',
+                //                layout: 'center',
+                //                template: '<div class="noty_message"><span class="noty_text"></span>'
+
+                //            }); //end of noty
+                //        });
+
+                //    });
+                //},
+            }
+        });
+
+
+
+        $('#timeInInput').timepicker({
+            minuteStep: 15,
+            secondStep: 59,
+            showInputs: false,
+            disableFocus: true,
+            template: 'dropdown',
+            modalBackdrop: true,
+            showSeconds: false,
+            showMeridian: true
+        });
+        $('#timeOutInput').timepicker({
+            minuteStep: 15,
+            secondStep: 59,
+            showInputs: false,
+            disableFocus: true,
+            template: 'dropdown',
+            modalBackdrop: true,
+            showSeconds: false,
+            showMeridian: true
+        });
+        function redirect() {
+            window.location.replace('/TimeInTimeOutData/ManageTimeInTimeOutData');
+        }
+
+
+        //-------------------- setup client-side validation logic --------------------------------
+        //http://stackoverflow.com/questions/18754020/bootstrap-3-with-jquery-validation-plugin
+        jQuery.validator.setDefaults({
+            highlight: function (element, errorClass, validClass) {
+                if (element.type === "radio") {
+                    this.findByName(element.name).addClass(errorClass).removeClass(validClass);
+                } else {
+                    $(element).closest('.form-group').removeClass('has-success has-feedback').addClass('has-error has-feedback');
+                    $(element).closest('.form-group').find('i.fa').remove();
+                    $(element).closest('.form-group').append('<i class="fa fa-exclamation fa-lg form-control-feedback"></i>');
+                }
+            },
+            unhighlight: function (element, errorClass, validClass) {
+                if (element.type === "radio") {
+                    this.findByName(element.name).removeClass(errorClass).addClass(validClass);
+                } else {
+                    $(element).closest('.form-group').removeClass('has-error has-feedback').addClass('has-success has-feedback');
+                    $(element).closest('.form-group').find('i.fa').remove();
+                    $(element).closest('.form-group').append('<i class="fa fa-check fa-lg form-control-feedback"></i>');
+                }
+            }
+        });
+
+        setupFormValidationRules();
+        function setupFormValidationRules() {
+
+            //////http://forums.asp.net/t/1671546.aspx?Singapore+mobile+phone+validation
+            ////jQuery.validator.addMethod('wageRateRule', function (wage_rate, element) {
+            ////    return validateDecimal(wage_rate);
+            ////}, 'Please specify a valid value. E.g. 100 or 100.50');
+
+            jQuery.validator.addMethod("validTimeFormatRule", function (value, element) {
+                //http://stackoverflow.com/questions/23895451/jquery-validate-ignore-custom-validation-rule-if-no-value
+                if (this.optional(element) || value.length == 0) {
+                    return true;
+                }
+                else {
+                    //http://stackoverflow.com/questions/24380305/validate-date-in-dd-mm-yyyy-format-using-jquery-validate
+                    return moment(value, 'hh:mm:ss').isValid();
+                }
+            }, 'Please enter a valid time in the format hh:mm:ss');
+            jQuery.validator.addMethod("timeOutIsGreaterThanTimeInRule", function (value, element) {
+
+                var collectedTimeInValue = $('#timeInInput').val();
+                var collectedTimeOutValue = $('#timeOutInput').val();
+
+
+                //http://stackoverflow.com/questions/23895451/jquery-validate-ignore-custom-validation-rule-if-no-value
+                //https://bhavinrana.wordpress.com/2011/05/14/jquery-validation-end-date-should-be-greater-than-start-date/
+
+                //Reference: http://stackoverflow.com/questions/39687278/moment-js-how-to-initialize-from-dd-mm-yyyy-format
+                var timeIn = moment(collectedTimeInValue, 'hh:mm:ss');
+                var timeOut = moment(value, 'hh:mm:ss');
+                //alert(startTime);
+                //alert(endTime);
+                return timeOut.isAfter(timeIn, 'time')
+                //  }
+            }, 'Time Out should be greater than Time In');
+
+            $('#dataForm').validate({
+
+                rules: {
+
+                    timeInInput: {
+                        required: true,
+                        validTimeFormatRule: true
+
+                    },
+                    timeOutInput: {
+                        required: true,
+                        validTimeFormatRule: true,
+                        timeOutIsGreaterThanTimeInRule: true
+                    }
+
+                },
+                messages: {
+                    timeInInput: {
+                        required: 'Please enter Time In'
+                    },
+                    timeOutInput:
+                    {
+                        required: 'Please enter Time Out'
+                    },
+                },
+                errorPlacement: function (error, element) {
+
+                    if (element.attr('name') == 'timeInInput') {
+                        error.appendTo(element.parent('div').parent('div'));
+                    } else if (element.attr('name') == 'timeOutInput') {
+                        error.appendTo(element.parent('div').parent('div'));
+                    } else {
+                        error.insertAfter(element);
+                    }
+                }
+            });
+        }
+
+
+
+    </script>
+
+}
+
+
+
+
+
+
+
+
+
+
+
+@*<div class="col-md-offset-2 col-md-8" id="timeInTimeOutControlPanel">
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <div class="panel-title"><h3>Providing time-in and time-out for <u>{{moment(dateOfLesson).format("DD/MM/YYYY dddd")}}</u> at {{.customerAccountName}} from {{timeSheetDetailData.officialTimeInHHMM}} to {{timeSheetDetailData.officialTimeOutHHMM}}</h3></div>
+            </div>
+            <div class="panel-body">
+                <form id="dataForm" name="dataForm" role="form" class="form-horizontal">
+
+                    <div class="form-group">
+                        <label class="control-label col-md-3" for="timeInInput">Time In</label>
+                        <div class="col-md-4">
+                            <div class="input-group bootstrap-timepicker timepicker">
+                                <input id="timeInInput" name="timeInInput" v-model="actualTimeInHHMM" type="text" class="form-control input-lg">
+                                <span class="input-group-addon"><i class="glyphicon glyphicon-time"></i></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-3" for="timeOutInput">Time Out </label>
+                        <div class="col-md-4">
+                            <div class="input-group bootstrap-timepicker timepicker">
+                                <input id="timeOutInput" name="timeOutInput" v-model="actualTimeOutHHMM" type="text" class="form-control input-lg">
+                                <span class="input-group-addon"><i class="glyphicon glyphicon-time"></i></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label col-lg-3" for="sessionSynopsisNamesInput"><span style="font-size:1.2em">Session Synopsis</span></label>
+                        <div class="col-md-4">
+                            <div class="form-control input-group">
+
+                                <div id="sessionSynopsisNamesInput">{{timeSheetDetailData.sessionSynopsisNamesArray}}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group col-md-12">
+                        <label class="control-label col-md-1"></label>
+                        <div class="col-md-10">
+                            <div class="pull-right">
+                                <input type="button" class="btn btn-primary" value="Save" @@click.prevent="updateTimeSheetDetail" id="saveButton" />
+                                <a id="goToManageAccountDetailLink" class="btn btn-default" asp-action="ManageTimeInTimeOutData" asp-controler="TimeInTimeOutData">Cancel</a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div><!-- end of div element which has the class="panel-body" -->
+        </div><!-- end of the div element which has the class="panel" -->
+    </div><!-- end of the div element which has class="col-md-offset-2 col-md-8" -->
+
+    @section scripts{
+        <!-- Material Design fonts -->
+        <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Roboto:300,400,500,700">
+        <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/icon?family=Material+Icons">
+        <link href="~/lib/bootstrap-material-design/dist/css/bootstrap-material-design.css" rel="stylesheet" />
+        <link href="~/lib/bootstrap-material-design/dist/css/ripples.css" rel="stylesheet" />
+        <link rel="stylesheet" type="text/css" href="~/lib/bootstrap-timepicker/css/timepicker.css" />
+        <script src="~/lib/bootstrap-timepicker/js/bootstrap-timepicker.js"></script>
+        <script src="https://unpkg.com/vue/dist/vue.js"></script>
+        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+        <script src="~/lib/bootstrap-material-design/dist/js/material.js"></script>
+        <script src="~/lib/bootstrap-material-design/dist/js/ripples.js"></script>
+
+        <script>
+            window.timeSheetDetailId = getIdFromAddressBar();
+            //Reference: http://fezvrasta.github.io/bootstrap-material-design/#getting-started
+            window.sessionSynopsisNamesArray = [];
+
+            $.material.init(); //Surprisingly, I need to place this command here so that it can work.
+
+            function getIdFromAddressBar() {
+                var urlArray = window.location.href.split('/');
+                var id = urlArray[urlArray.length - 1];
+                return id;
+            };
+            var vm = new Vue({
+                el: '#timeInTimeOutControlPanel',
+                data: {
+                    timeSheetDetailData: {
+                        timeSheetDetailId: '',
+                        dateOfLesson: '',
+                        customerAccountName: '',
+                        officialTimeInHHMM: '',
+                        officialTimeOutHHMM: '',
+                        sessionSynopsisNamesArray: '',
+                        },
+
+
+                    actualTimeInHHMM: '',
+                    actualTimeOutHHMM: '',
+                    moment: moment,
+                },
+                //props: ['sessionSynopsisNamesArray', 'comments', 'customerAccountName', 'dateOfLesson', 'officialTimeInHHMM', 'officialTimeOutHHMM', 'actualTimeIn', 'actualTimeOut', 'signedStatus', 'timeSheetDetailId'],
+                props: {
+
+                },
+                mounted() {
+                    this.loadOneTimeSheetDetailData();
+                    this.setupSessionSynopsisNamesListBox();
+
+                },
+                computed: {
+                },
+                watch: {
+
+                },
+                methods: {
+
+                    loadOneTimeSheetDetailData: function () {
+                        var that = this;
+                        $requestTracker = jQuery.ajax({
+                            type: 'GET',
+                            beforeSend: function (xhr) {
+                                xhr.setRequestHeader('RequestVerificationToken', $('input[name=__RequestVerificationToken]').val());
+                            },
+                            url: '/API/TimeInTimeOutData/GetOneTimeSheetDetailData/' + window.timeSheetDetailId,
+                            dataType: 'json',
+                            contentType: 'application/json'
+                        });
+                        $requestTracker.done(function (data) {
+                            console.dir(data);
+                            //that.$root._data.timeSheetDetailData = data;
+                            //actualTimeInHHMM = data.actualTimeInHHMM;
+                            //actualTimeOutHHMM = data.actualTimeOutHHMM;
+                            //dateOfLesson = data.dateOfLesson;
+                            //customerAccountName = timeSheetDetailData.customerAccountName;
+                            //sessionSynopsisNames = data.sessionSynopsisNames;
+
+                            that.$root._data.actualTimeInHHMM = data.actualTimeInHHMM;
+                            that.$root._data.actualTimeOutHHMM = data.actualTimeOutHHMM;
+                            that.$root._data.timeSheetDetailData.dateOfLesson = data.dateOfLesson;
+                            that.$root._data.customerAccountName = data.customerAccountName;
+                            that.$root._data.sessionSynopsisNames = data.sessionSynopsisNames;
+
+                            console.dir(data.sessionSynopsisNames)
+                            //sessionSynopsis
+                            //console.dir(sessionSynopsisNames);
+
+                        });
+
+                    },
+                    updateTimeSheetDetail: function () {
+                        var that = this;
+                        console.log('Save button is clicked');
+
+                        console.dir(sessionSynopsisNames);
+
+                        $saveDataHandler = jQuery.ajax({
+
+                            type: 'PUT',
+                            url: '/API/TimeInTimeOutData/UpdateTimeInTimeOutData',
+                            dataType: 'json',
+                            beforeSend: function (xhr) {
+                                xhr.setRequestHeader('RequestVerificationToken', $('input[name=__RequestVerificationToken]').val());
+                            },
+                            data: /*function(mins)*/{
+                                actualTimeIn: $("#timeInInput").val(),
+                                actualTimeOut: $("#timeOutInput").val(),
+                                sessionSynopsisNames: $("sessionSynopsisNamesInput").val(sessionSynopsisNamesArray),
+                                timeSheetDetailId: that.$root._data.timeSheetDetailData.timeSheetDetailId
+                            },
+                            contentType: 'application/x-www-form-urlencoded',
+                        });//end of jQuery.ajax() method call
+                        $saveDataHandler.done(function (data, textStatus, jqXHR) {
+                            console.log(data);
+                            new Noty({
+                                text: data.message, type: 'success', layout: 'center',
+                                callbacks: {
+                                    onClose: function () {
+                                        redirect();
+                                    },
+                                },
+                            }).show();
+                        });//end of saveDataHandler.done(...)
+                    },
+                    getWeekDayName: function (inWeedDayNumber) {
+                        var dayNameList = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday',
+                            'Saturday'];
+                        console.log(dayNameList[inWeedDayNumber]);
+                        return dayNameList[inWeedDayNumber];
+                    },
+                    getTimeFromMins: function (mins) {
+                        //https://stackoverflow.com/questions/36035598/how-to-convert-minutes-to-hours-using-moment-js
+                        // Do not include the first validation check if you want, for example,
+                        // getTimeFromMins(1530) to equal getTimeFromMins(90) (i.e. mins rollover)
+                        if (mins >= 24 * 60 || mins < 0) {
+                            throw new RangeError("Valid input should be greater than or equal to 0 and less than 1440.");
+                        }
+                        var h = mins / 60 | 0,
+                            m = mins % 60 | 0;
+                        return moment.utc().hours(h).minutes(m).format("hh:mm A");
+                    },
+
+                    setupSessionSynopsisNamesListBox: function () {
+
+                        var $loadSessionSynopsisNamesHandler = jQuery.ajax({
+                            contentType: 'application/json',
+                            method: 'get',
+                            url: '/api/SessionSynopses/GetSessionSynopsesForControls',
+
+                        });
+
+                        $loadSessionSynopsisNamesHandler.done(function (data, textStatus, jqXHR) {
+                            console.dir(data);
+                            var sessionSynopsisList = data;
+                            $("#sessionSynopsisNamesInput").jqxComboBox({
+                                source: sessionSynopsisList, multiSelect: true,
+                                width: 250, height: 30,
+                                displayMember: 'sessionSynopsisName',
+                                valueMember: 'sessionSynopsisId'
+                            });
+
+
+                            $loadSessionSynopsisNamesHandler.fail(function (data, textStatus, jqXHR) {
+                                var errMsg = data.responseJSON.message
+                                noty({
+                                    text: errMsg,
+                                    type: 'error',
+                                    layout: 'center',
+                                    template: '<div class="noty_message"><span class="noty_text"></span>'
+
+                                }); //end of noty
+                            });
+
+                        });
+                    },
+
+                }
+            });
+            $('#timeInInput').timepicker({
+                minuteStep: 15,
+                secondStep: 59,
+                showInputs: false,
+                disableFocus: true,
+                template: 'dropdown',
+                modalBackdrop: true,
+                showSeconds: false,
+                showMeridian: true
+            });
+            $('#timeOutInput').timepicker({
+                minuteStep: 15,
+                secondStep: 59,
+                showInputs: false,
+                disableFocus: true,
+                template: 'dropdown',
+                modalBackdrop: true,
+                showSeconds: false,
+                showMeridian: true
+            });
+
+            $("#sessionSynopsisNamesInput").on('change', function (event) {
+                var items = $("#sessionSynopsisNamesInput").jqxComboBox('getSelectedItems');
+                var selectedItems = [];
+                $.each(items, function (index) {
+                    selectedItems.push(this.label);
+                });
+
+                sessionSynopsisNamesArray = selectedItems;
+
+            });
+
+
+            function redirect() {
+                window.location.replace('/TimeInTimeOutData/ManageTimeInTimeOutData');
+            }
+
+            //-------------------- setup client-side validation logic --------------------------------
+            //http://stackoverflow.com/questions/18754020/bootstrap-3-with-jquery-validation-plugin
+            jQuery.validator.setDefaults({
+                highlight: function (element, errorClass, validClass) {
+                    if (element.type === "radio") {
+                        this.findByName(element.name).addClass(errorClass).removeClass(validClass);
+                    } else {
+                        $(element).closest('.form-group').removeClass('has-success has-feedback').addClass('has-error has-feedback');
+                        $(element).closest('.form-group').find('i.fa').remove();
+                        $(element).closest('.form-group').append('<i class="fa fa-exclamation fa-lg form-control-feedback"></i>');
+                    }
+                },
+                unhighlight: function (element, errorClass, validClass) {
+                    if (element.type === "radio") {
+                        this.findByName(element.name).removeClass(errorClass).addClass(validClass);
+                    } else {
+                        $(element).closest('.form-group').removeClass('has-error has-feedback').addClass('has-success has-feedback');
+                        $(element).closest('.form-group').find('i.fa').remove();
+                        $(element).closest('.form-group').append('<i class="fa fa-check fa-lg form-control-feedback"></i>');
+                    }
+                }
+            });
+
+            setupFormValidationRules();
+            function setupFormValidationRules() {
+
+                //////http://forums.asp.net/t/1671546.aspx?Singapore+mobile+phone+validation
+                ////jQuery.validator.addMethod('wageRateRule', function (wage_rate, element) {
+                ////    return validateDecimal(wage_rate);
+                ////}, 'Please specify a valid value. E.g. 100 or 100.50');
+
+                jQuery.validator.addMethod("validTimeFormatRule", function (value, element) {
+                    //http://stackoverflow.com/questions/23895451/jquery-validate-ignore-custom-validation-rule-if-no-value
+                    if (this.optional(element) || value.length == 0) {
+                        return true;
+                    }
+                    else {
+                        //http://stackoverflow.com/questions/24380305/validate-date-in-dd-mm-yyyy-format-using-jquery-validate
+                        return moment(value, 'hh:mm:ss').isValid();
+                    }
+                }, 'Please enter a valid time in the format hh:mm:ss');
+                jQuery.validator.addMethod("timeOutIsGreaterThanTimeInRule", function (value, element) {
+
+                    var collectedTimeInValue = $('#timeInInput').val();
+                    var collectedTimeOutValue = $('#timeOutInput').val();
+
+
+                    //http://stackoverflow.com/questions/23895451/jquery-validate-ignore-custom-validation-rule-if-no-value
+                    //https://bhavinrana.wordpress.com/2011/05/14/jquery-validation-end-date-should-be-greater-than-start-date/
+
+                    //Reference: http://stackoverflow.com/questions/39687278/moment-js-how-to-initialize-from-dd-mm-yyyy-format
+                    var timeIn = moment(collectedTimeInValue, 'hh:mm:ss');
+                    var timeOut = moment(value, 'hh:mm:ss');
+                    //alert(startTime);
+                    //alert(endTime);
+                    return timeOut.isAfter(timeIn, 'time')
+                    //  }
+                }, 'Time Out should be greater than Time In');
+
+                $('#dataForm').validate({
+
+                    rules: {
+
+                        timeInInput: {
+                            required: true,
+                            validTimeFormatRule: true
+
+                        },
+                        timeOutInput: {
+                            required: true,
+                            validTimeFormatRule: true,
+                            timeOutIsGreaterThanTimeInRule: true
+                        }
+
+                    },
+                    messages: {
+                        timeInInput: {
+                            required: 'Please enter Time In'
+                        },
+                        timeOutInput:
+                        {
+                            required: 'Please enter Time Out'
+                        },
+                    },
+                    errorPlacement: function (error, element) {
+
+                        if (element.attr('name') == 'timeInInput') {
+                            error.appendTo(element.parent('div').parent('div'));
+                        } else if (element.attr('name') == 'timeOutInput') {
+                            error.appendTo(element.parent('div').parent('div'));
+                        } else {
+                            error.insertAfter(element);
+                        }
+                    }
+                });
+            }
+
+
+
+        </script>
+
+    }*@
