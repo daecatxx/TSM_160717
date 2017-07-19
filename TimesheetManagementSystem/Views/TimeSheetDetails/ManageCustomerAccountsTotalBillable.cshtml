@@ -1,18 +1,21 @@
 ﻿<style>
-  body {
-    margin-top:-40px;
-  }
-  @@media (max-width: 980px) {
-				body {
-						margin-top: 10px;
-				}
-  }
-	pre{
-	background-color:transparent;
-	font-family:Calibri;
-	font-size:12pt;
-	border:0px solid black;
-	}
+    body {
+        margin-top: -40px;
+    }
+
+    @@media (max-width: 980px) {
+        body {
+            margin-top: 10px;
+        }
+    }
+
+    pre {
+        background-color: transparent;
+        font-family: Calibri;
+        font-size: 12pt;
+        border: 0px solid black;
+    }
+
     .search-panel {
         background-color: rgb(90.7%,92.7%,100%);
         padding: 20px;
@@ -22,73 +25,77 @@
         border-radius: 10px;
         position: relative;
     }
+
     * {
         font-size: 14px;
         line-height: 1;
     }
-    .container{
-        margin-left:10px;
-        width:100%;
-    }
-    .visible-input{
-        visibility:visible;
-    }
-    .hidden-input{
-        display:none;
-    }
-    .form-control-static{
-        text-align:left;
+
+    .container {
+        margin-left: 10px;
+        width: 100%;
     }
 
+    .visible-input {
+        visibility: visible;
+    }
+
+    .hidden-input {
+        display: none;
+    }
+
+    .form-control-static {
+        text-align: left;
+    }
 </style>
 <form id="searchForm">
-<table style="width:500px;" class="search-panel">
-    <tr>
-		<td style="padding:3px;text-align:left;height:55px;vertical-align:top">
-			<select id="instructorIdInput"></select>
-		</td>
-        <td style="padding:3px;text-align:left;height:55px;vertical-align:top">
-            <select id="monthInput" >
-                <option value="1" >January</option>
-                <option value="2">February</option>
-                <option value="3">March</option>
-                <option value="4">April</option>
-                <option value="5">May</option>
-                <option value="6">June</option>
-                <option value="7">July</option>
-                <option value="8">August</option>
-                <option value="9">September</option>
-                <option value="10">October</option>
-                <option value="11">November</option>
-                <option value="12">December</option>
-            </select>
-        </td>
-        <td style="text-align:left;padding:3px;height:55px;vertical-align:top">
-            <div id="yearInput" ></div>
-        </td>
-        <td style="text-align:left;padding:3px;vertical-align:top">
-            <input type="button" id="searchButton" name="searchButton" value="Search" />
-        </td>
-    </tr>
-</table>
-<div class="row"  id="timeSheetControlPanelBox"  >
+    <table style="width:500px;" class="search-panel">
+        <tr>
+            <td style="padding:3px;text-align:left;height:55px;vertical-align:top">
+                <select id="instructorIdInput"></select>
+            </td>
+            <td style="padding:3px;text-align:left;height:55px;vertical-align:top">
+                <select id="monthInput">
+                    <option value="1">January</option>
+                    <option value="2">February</option>
+                    <option value="3">March</option>
+                    <option value="4">April</option>
+                    <option value="5">May</option>
+                    <option value="6">June</option>
+                    <option value="7">July</option>
+                    <option value="8">August</option>
+                    <option value="9">September</option>
+                    <option value="10">October</option>
+                    <option value="11">November</option>
+                    <option value="12">December</option>
+                </select>
+            </td>
+            <td style="text-align:left;padding:3px;height:55px;vertical-align:top">
+                <div id="yearInput"></div>
+            </td>
+            <td style="text-align:left;padding:3px;vertical-align:top">
+                <input type="button" id="searchButton" name="searchButton" value="Search" />
+            </td>
+        </tr>
+    </table>
+    @*<div class="row" id="timeSheetControlPanelBox">
         <div class="col-md-3">
             <div>
                 <label class="control-label">Approve / Pending</label>
                 <div class="form-control" style="min-height:9vh;max-height:11vh">
-                    <div id="approveButton" data-toggle="modal" data-target="#confirm-approve"></div> 
-	              </div>
-            </div>
-          </div>
-          <div class="col-md-3">
-                <div class="">
-                    <label  class="control-label">Approved at </label>
-                    <div class="form-control"  style="min-height:9vh;max-height:11vh" >
-                        <div id="approveDatePlainText" class="form-control-static"></div>
-                    </div>
+                    <div id="approveButton" data-toggle="modal" data-target="#confirm-approve"></div>
                 </div>
-          </div>
-</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="">
+                <label class="control-label">Approved at </label>
+                <div class="form-control" style="min-height:9vh;max-height:11vh">
+                    <div id="approveDatePlainText" class="form-control-static"></div>
+                </div>
+            </div>
+        </div>
+    </div>*@
 </form>
 <hr />
 <div id='instructorTimeSheetDetailMainBox'>
@@ -101,32 +108,32 @@
 </div>
 
 
-<div class="modal fade" id="confirm-approve" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-		<div class="modal-dialog">
-				<div class="modal-content">
-						<div class="modal-header">
-								Set Approve/Pending status on timesheet
-						</div>
-						<div class="modal-body">
-								Continue to update the status?
-						</div>
-						<div class="modal-footer">
-								<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-								<a class="btn btn-danger btn-ok">Continue</a>
-						</div>
-				</div>
-		</div>
-</div>
+@*<div class="modal fade" id="confirm-approve" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                Set Approve/Pending status on timesheet
+            </div>
+            <div class="modal-body">
+                Continue to update the status?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <a class="btn btn-danger btn-ok">Continue</a>
+            </div>
+        </div>
+    </div>
+</div>*@
 
 
 @section scripts{
-    
-<link href="~/lib/jqwidgets/jqwidgets/styles/jqx.base.css" rel="stylesheet" />
-<link href="~/lib/jqwidgets/jqwidgets/styles/jqx.energyblue.css" rel="stylesheet" />
-<script src="~/lib/jqwidgets/jqwidgets/jqxcore.js"></script>
-<script src="~/lib/jqwidgets/jqwidgets/jqx-all.js"></script>
 
-<script>
+    <link href="~/lib/jqwidgets/jqwidgets/styles/jqx.base.css" rel="stylesheet" />
+    <link href="~/lib/jqwidgets/jqwidgets/styles/jqx.energyblue.css" rel="stylesheet" />
+    <script src="~/lib/jqwidgets/jqwidgets/jqxcore.js"></script>
+    <script src="~/lib/jqwidgets/jqwidgets/jqx-all.js"></script>
+
+    <script>
     $(document).ready(function () {
                //------------------------------------------------------------------------------------------------------------
                //window.viewUIState is a global object.
@@ -146,7 +153,7 @@
                 window.timeSheetDetailsData = null;
 				window.timeSheetDataSource = null;
 				window.timeSheetId = 0;
-                $('#timeSheetControlPanelBox').addClass('hidden-input');
+                //$('#timeSheetControlPanelBox').addClass('hidden-input');
                 setupInputInterface();
 
 				if (window.viewUIState.instructorId != 0) {
@@ -154,7 +161,7 @@
 						obtainTimeSheetDetailsData(window.viewUIState.instructorId, window.viewUIState.month, window.viewUIState.year);
 				}
 		});
-		
+
 
 		function setupInputInterface() {
 
@@ -205,7 +212,7 @@
             hintType: 'label',
             rules: [
                 {
-                    input: '#yearInput', message: 'A valid value is needed', action: 'keyup,blur',rule: function (data, commit) { 
+                    input: '#yearInput', message: 'A valid value is needed', action: 'keyup,blur',rule: function (data, commit) {
                         if (validateYear($('#yearInput').jqxComboBox('val')) == false) {
                             return false;
                         } else { return true;}
@@ -213,7 +220,7 @@
             ]
         });
 
-				$('#searchForm').on('validationSuccess', function (event) { 
+				$('#searchForm').on('validationSuccess', function (event) {
 						var monthValue = $('#monthInput').jqxDropDownList('val');
 						var yearValue = $('#yearInput').jqxComboBox('val');
 						var instructorId = $('#instructorIdInput').jqxDropDownList('val');
@@ -233,7 +240,7 @@
                             $('#approveButton').jqxSwitchButton({ disabled: true });
                             $('#timeSheetControlPanelBox').addClass('hidden-input');
                         }
-        }); 
+        });
 
 
 
@@ -303,7 +310,7 @@
 
         var itIsNumber = /^\d{4}$/.test(year); // true if it is what you want
         return itIsNumber;
-        
+
     }//validateYear
     function obtainTimeSheetDetailsData(inInstructorId,inMonth,inYear) {
         $commTracker = $.ajax({
@@ -377,7 +384,7 @@
         }
 */
         var actualTimeInCellRenderer = function (row, columnfield, value, defaulthtml, columnproperties,rowData) {
-            
+
             if (rowData.actualTimeIn > rowData.officialTimeIn) {
                 return '<span style="font-weight:bold;margin: 4px; float: ' + columnproperties.cellsalign + '; color:red;vertical-align:top">' + value + '</span>';
 						} else if (rowData.actualTimeIn < rowData.officialTimeIn) {
@@ -400,7 +407,7 @@
 						}
         }
         headerRenderer = function (defaultText, alignment, height) {
-           
+
             return '<div style="float:left;margin-top:5px;margin-left:4px;width:100%;word-wrap: break-word;">' + defaultText + '</div>';
 				}
 
@@ -426,7 +433,7 @@
 										var $container = $("<div style='margin: 5px;'></div>");
 										var $span = $("<span style='float: left; margin-top: 5px; margin-right: 4px;'></span>");
 										if (window.timeSheetData != null) {
-												$span.text('Timesheet of ' + window.timeSheetData.instructorName 
+												$span.text('Timesheet of ' + window.timeSheetData.instructorName
 														+ ' for ' + window.timeSheetData.month + ' ( ' + window.timeSheetData.year + ' )');
 										}
 										toolbar.append($container);
@@ -438,7 +445,7 @@
 								columnsresize: true,
                 width: '95%',
                 source: dataAdapter,
-                columnsheight: 50,                
+                columnsheight: 50,
                 theme:'energyblue',
                 columns: [
                     { text: 'Account name', datafield: 'customerAccountName', width: 150, renderer: headerRenderer },
@@ -501,7 +508,7 @@
     }//end of prepareGridInterface
     $('#excelExportButton').click(function () {
         $('#jqxgrid').jqxGrid('exportdata', 'xls', 'jqxGrid');
-    }); 
+    });
 
 
     function getTimeFromMins(mins) {
@@ -515,7 +522,7 @@
             m = mins % 60 | 0;
         return moment.utc().hours(h).minutes(m).format("hh:mm A");
     }
-   
+
 		$('#confirm-approve').on('click', '.btn-ok', function (e) {
 				//http://stackoverflow.com/questions/8982295/confirm-delete-modal-dialog-with-twitter-bootstrap
 				var $modalDiv = $(e.delegateTarget);
@@ -545,7 +552,7 @@
 						}).fail(function (data) {
 						$modalDiv.modal('hide').removeClass('loading');
 						new Noty({ text: data.message, type: 'error' , layout:'center'}).show();
-						});			
+						});
 
 
     });
@@ -565,6 +572,6 @@
 		});
 
 
-</script>
+    </script>
 
 }

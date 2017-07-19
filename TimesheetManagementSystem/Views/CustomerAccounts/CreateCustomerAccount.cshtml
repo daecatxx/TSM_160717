@@ -29,7 +29,7 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="control-label col-md-3" for="effectiveEndDateInput">Comments</label>
+                        <label class="control-label col-md-3" for="commentsInput">Comments</label>
                         <div class="col-md-9">
                             <textarea class="form-control input-lg" style="max-width:600px;" id="commentsInput" name="commentsInput"
                                       rows="5" placeholder="Comments .... " required></textarea>
@@ -158,7 +158,7 @@
                         layout: 'top',
                         type: 'success',
                         closeWith: ['click', 'button'],
-                        callbacks: {                             
+                        callbacks: {
                             onClose: function () {
                                 redirectPage();
                             },
@@ -167,7 +167,7 @@
 
                     $('html, body').animate({
                         scrollTop: $("#divTwo").offset().top
-                    }, 2000);   
+                    }, 2000);
                 });//end of $saveDataHandler.done()
                 $saveDataHandler.fail(function (data, textStatus, jqXHR) {
                     var infoFromServer = data.responseJSON.message;

@@ -192,6 +192,63 @@ namespace TimeSheetManagementSystem.APIs
 
 
         //api/CustomerAccounts/GetOneAssignedInstructor
+        [HttpGet("GetInstructorAccountsByInstructor")]
+
+        public JsonResult GetInstructorAccountsByInstructor()
+        {
+            string email = _userManager.GetUserName(User);
+            int userInfoId = Database.UserInfo.Single(input => input.Email == email).UserInfoId;
+
+            List<object> instructorAccountList = new List<object>();
+            //var foundOneInstructorAccount = Database.InstructorAccounts
+            //    .Where(input => input.InstructorAccountId == inInstructorAccountId).Single();
+
+            var foundInstructorAssignedToAccounts = Database.InstructorAccounts
+                .Include(input => input.CustomerAccount)
+                //.Include(input=>input.InstructorAccounts)
+                .Where(input => input.InstructorId == userInfoId);
+
+            //var foundInstructorAssignedToAccounts = Database.CustomerAccounts
+            //    //.Include(input => input.CustomerAccount)
+            //    .Include(input=>input.InstructorAccounts)
+            //    .Where(input => input.CustomerAccountId == )
+
+            foreach (var oneInstructorAccount in foundInstructorAssignedToAccounts)
+            {
+                instructorAccountList.Add(new
+                {
+                    instructorAccountId = oneInstructorAccount.InstructorAccountId,
+                    customerAccountId = oneInstructorAccount.CustomerAccountId,
+                    accountName = oneInstructorAccount.CustomerAccount.AccountName,
+                    instructorId = oneInstructorAccount.InstructorId,
+                    comments = oneInstructorAccount.Comments,
+                    wageRate = oneInstructorAccount.WageRate,
+                    effectiveStartDate = oneInstructorAccount.EffectiveStartDate,
+                    effectiveEndDate = oneInstructorAccount.EffectiveEndDate,
+                });
+            }
+            //var response = new
+            //{
+            //    instructorAccountId = foundOneInstructorAccount.InstructorAccountId,
+            //    customerAccountId = foundOneInstructorAccount.CustomerAccountId,
+            //    instructorId = foundInstructorAssignedToAccounts.InstructorId,
+            //    comments = foundOneInstructorAccount.Comments,
+            //    wageRate = foundOneInstructorAccount.WageRate,
+            //    effectiveStartDate = foundOneInstructorAccount.EffectiveStartDate,
+            //    effectiveEndDate = foundOneInstructorAccount.EffectiveEndDate,
+            //    //isCurrent = foundOneInstructorAccount.IsCurrent,
+
+            //};
+
+            //Use the JsonResult class to create a new JsonResult instance by using the accountList.
+            //The ASP.NET framework will do the rest to translate it into a string JSON structured content
+            //which can travel through the Internet wire to the client browser.
+            //https://google.github.io/styleguide/jsoncstyleguide.xml#Property_Name_Format
+            return new JsonResult(instructorAccountList);
+        }//end of GetInstructorAccountsByInstructor
+
+
+        //api/CustomerAccounts/GetOneAssignedInstructor
         [HttpGet("GetOneAssignedInstructor/{inInstructorAccountId}")]
 
         public JsonResult GetOneAssignedInstructor(int inInstructorAccountId)
@@ -218,7 +275,7 @@ namespace TimeSheetManagementSystem.APIs
             //which can travel through the Internet wire to the client browser.
             //https://google.github.io/styleguide/jsoncstyleguide.xml#Property_Name_Format
             return new JsonResult(response);
-        }//end of GetOneAccountRate
+        }//end of GetOneAssignedInstructor
 
         // PUT api/values/5
         [HttpPut("UpdateAssignmentOfInstructorToCustomerAccount/{inInstructorAccountId}")]
@@ -395,7 +452,7 @@ namespace TimeSheetManagementSystem.APIs
             foundParentCustomerAccount.UpdatedAt = DateTime.Now;
             foundParentCustomerAccount.UpdatedById = userInfoId;
 
-            
+
             object result = null;
 
             try

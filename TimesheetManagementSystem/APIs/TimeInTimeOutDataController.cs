@@ -90,6 +90,226 @@ namespace TimeSheetManagementSystem.APIs
 
         }//End of GetOneTimeSheetDetailData
 
+
+        [HttpGet("GetPreviousMonthTimeSheetDataAndConfiguration")]
+        public IActionResult GetPreviousMonthTimeSheetDataAndConfiguration(TimeSheetDetailQueryModelByInstructor query)
+        {
+            /* Objective: The Web API returns one parent TimeSheet and related TimeSheetDetail for the current system month */
+            /* The information also embeds the SessionSynopsis data for listbox binding */
+            Thread.Sleep(2000);
+            List<object> timeSheetDetailList = new List<object>();
+            List<object> timeSheetData = new List<object>();
+            object response;
+            List<TimeSheet> oneTimeSheetQueryResult = new List<TimeSheet>();
+
+            //string userLoginId = _userManager.GetUserName(User);
+            //string userLoginName = _userManager.GetUserName(User);
+
+
+            //int userInfoId = Database.UserInfo.Single(input => input.Email == email).UserInfoId;
+
+            string email = _userManager.GetUserName(User);
+
+            string userFullName = Database.UserInfo.Single(input => input.Email == email).FullName;
+            int userInfoId = Database.UserInfo.Single(input => input.Email == email).UserInfoId;
+
+
+            // userFullName = "Manually Generated";// can put the name also 
+        
+
+            if (query.Month != null && query.Month != 0)
+            {
+                //oneTimeSheetQueryResult = Database.TimeSheets
+                //         .Include(input => input.Instructor)
+                //         .Where(input => (input.InstructorId == userInfoId) && 
+                //         (input.MonthAndYear.Month == query.Month) &&
+                //         (input.MonthAndYear.Year == query.Year)).AsNoTracking().ToList<TimeSheet>();
+
+
+
+                oneTimeSheetQueryResult = Database.TimeSheets
+                                            .Include(input => input.Instructor)
+
+                                            .Where(input => (input.InstructorId == userInfoId) &&
+                                            (input.MonthAndYear.Month == query.Month) &&
+
+
+
+
+                                            //&&
+                                            (input.MonthAndYear.Year == DateTime.Now.Year)).AsNoTracking()
+                                            .ToList<TimeSheet>();
+
+            }
+            else
+            {
+                //int currentMonth = DateTime.Now.Month;
+                //DateTime currentDate = DateTime.Now;
+                //string GetCurrentMonthAndYear = string.Format("1/{0}/{1}", currentDate.Month, currentDate.Year);
+                //DateTime MonthYear = DateTime.ParseExact(GetCurrentMonthAndYear, "d/M/yyyy", CultureInfo.InvariantCulture);
+
+                //int prevMths = 
+
+                DateTime prev = DateTime.Now;
+                //prev = prev.AddMonths(-3);
+
+                //DateTime currentDate = DateTime.ParseExact(currentDate, "d/M/yyyy", CultureInfo.InvariantCulture);
+                // Concate the 1 with the month and year in date of lesson
+
+                //DateTime f = DateTime.Now;
+                //f = f.AddMonths(-2);
+
+                //&& (input.MonthAndYear.Month == f.Month)
+
+                // This is where we set the condition to get past three months records
+                oneTimeSheetQueryResult = Database.TimeSheets
+                                         .Include(input => input.Instructor)
+                                         //.Include(input => input.)
+                                         .Where(input => (input.InstructorId == userInfoId) &&
+
+                                         ((input.MonthAndYear.Month >= prev.Month - 3) &&
+                                         (input.MonthAndYear.Month <= prev.Month - 1))
+
+
+
+                                         &&
+                                         (input.MonthAndYear.Year == DateTime.Now.Year)).AsNoTracking()
+                                         .ToList<TimeSheet>();
+                //.FirstOrDefault();
+            }
+
+            if (oneTimeSheetQueryResult == null)
+            {
+                response = new
+                {
+                    timeSheet = timeSheetData,
+                    timeSheetDetails = timeSheetDetailList
+                };
+
+                return new JsonResult(response);
+            }
+            foreach (var oneTimeSheetResult in oneTimeSheetQueryResult)
+            {
+                //oneTimeSheetData = new
+                //{
+                //    timeSheetId = oneTimeSheetQueryResult.TimeSheetId,
+                //    instructorName = oneTimeSheetQueryResult.Instructor.FullName,
+                //    year = oneTimeSheetQueryResult.MonthAndYear.Year,
+                //    month = oneTimeSheetQueryResult.MonthAndYear.Month,
+                //    instructorId = oneTimeSheetQueryResult.InstructorId,
+                //    createdAt = oneTimeSheetQueryResult.CreatedAt,
+                //    updatedAt = oneTimeSheetQueryResult.UpdatedAt,
+                //    approvedAt = oneTimeSheetQueryResult.ApprovedAt
+                //};
+                timeSheetData.Add(new
+                {
+                    timeSheetId = oneTimeSheetResult.TimeSheetId,
+                    instructorName = oneTimeSheetResult.Instructor.FullName,
+                    year = oneTimeSheetResult.MonthAndYear.Year,
+                    month = oneTimeSheetResult.MonthAndYear.Month,
+                    instructorId = oneTimeSheetResult.InstructorId,
+                    createdAt = oneTimeSheetResult.CreatedAt,
+                    updatedAt = oneTimeSheetResult.UpdatedAt,
+                    approvedAt = oneTimeSheetResult.ApprovedAt
+                }
+                );
+
+            }
+            List<TimeSheetDetail> timeSheetDetailsQueryResult = new List<TimeSheetDetail>();
+            if (oneTimeSheetQueryResult != null)
+            {
+                foreach (var _oneTimeSheetQueryResult in oneTimeSheetQueryResult)
+                {
+                    var listTimeSheet = Database.TimeSheetDetails
+                         .Where(input => input.TimeSheetId == _oneTimeSheetQueryResult.TimeSheetId)
+                         .AsNoTracking().ToList<TimeSheetDetail>();
+
+                    foreach (var _listTimeSheet in listTimeSheet)
+                        timeSheetDetailsQueryResult.Add(_listTimeSheet);
+                }
+
+                //timeSheetDetailsQueryResult = Database.TimeSheetDetails
+                //         .Where(input => input.TimeSheetId == oneTimeSheetQueryResult[0].TimeSheetId)
+                //         .AsNoTracking().ToList<TimeSheetDetail>();
+            }
+            //The following block of LINQ code is used for testing purpose to sort the 
+            //timesheetdetail information by lesson dates.
+            var sortedTimeSheetDetailList = from e in timeSheetDetailsQueryResult
+                                            select new
+                                            {
+                                                timeSheetDetailId = e.TimeSheetDetailId,
+                                                dateOfLesson = e.DateOfLesson,
+                                                officialTimeIn = e.OfficialTimeInMinutes,
+                                                officialTimeOut = e.OfficialTimeOutMinutes,
+                                                actualTimeIn = e.TimeInInMinutes,
+                                                officialTimeInHHMM = ConvertFromMinutesToHHMM(e.OfficialTimeInMinutes),
+                                                actualTimeOut = e.TimeOutInMinutes,
+                                                officialTimeOutHHMM = ConvertFromMinutesToHHMM(e.OfficialTimeOutMinutes),
+                                                wageRatePerHour = e.WageRatePerHour,
+                                                ratePerHour = e.RatePerHour,
+                                                customerAccountName = e.AccountName,
+                                                sessionSynopsisNames = e.SessionSynopsisNames,
+                                                createdBy = userFullName,
+                                                /*If the record is filled with time-in and time-out and a signature has been obtained, 
+                                                 * this record is not editable*/
+                                                locked = ((e.TimeInInMinutes != null) && (e.SignedStatus == true)) ? true : false,
+                                                updateable = (e.SignedStatus == false) ? true : false,
+                                                signedStatus = e.SignedStatus,
+                                                actualTimeInHHMM = (e.TimeInInMinutes != null) ? ConvertFromMinutesToHHMM(e.TimeInInMinutes) : "",
+                                                actualTimeOutHHMM = (e.TimeOutInMinutes != null) ? ConvertFromMinutesToHHMM(e.TimeOutInMinutes) : "",
+                                                comments = e.Comments,
+                                                isReplacement = e.IsReplacementInstructor,
+                                                updatedAt = e.UpdatedAt
+                                            }
+                   into temp
+                                            orderby temp.dateOfLesson ascending
+                                            select temp;
+
+
+
+
+            foreach (var oneTimeSheetDetail in timeSheetDetailsQueryResult)
+            {
+                timeSheetDetailList.Add(new
+                {
+                    timeDetailSheetId = oneTimeSheetDetail.TimeSheetDetailId,
+                    dateOfLesson = oneTimeSheetDetail.DateOfLesson,
+                    officialTimeIn = oneTimeSheetDetail.OfficialTimeInMinutes,
+                    officialTimeOut = oneTimeSheetDetail.OfficialTimeOutMinutes,
+                    actualTimeIn = oneTimeSheetDetail.TimeInInMinutes,
+                    actualTimeOut = oneTimeSheetDetail.TimeOutInMinutes,
+                    wageRatePerHour = oneTimeSheetDetail.WageRatePerHour,
+                    ratePerHour = oneTimeSheetDetail.RatePerHour,
+                    customerAccountName = oneTimeSheetDetail.AccountName,
+                    sessionSynopsisNames = oneTimeSheetDetail.SessionSynopsisNames
+                });
+            }//end of foreach loop which builds the timeSheetDetailList List container .
+
+            //Obtain SessionSynopsis data
+            var sessionSynopsisList = Database.SessionSynopses
+                .Where(input => input.IsVisible == true)
+                .Select(input => new
+                {
+                    sessionSynopsisId = input.SessionSynopsisId,
+                    sessionSynopsisName = input.SessionSynopsisName
+                }).ToList();
+
+
+            response = new
+            {
+                timeSheet = timeSheetData,
+                timeSheetDetails = sortedTimeSheetDetailList,
+
+                // timeSheetDetailList = sortedTimeSheetDetailList,
+
+                //sessionSynopsisList = sessionSynopsisList
+            };
+
+            return new JsonResult(response);
+
+        }//End of GetPreviousMonthTimeSheetDataAndConfiguration
+
+
         // GET: api/GetTimeSheetAndTimeSheetDetails/
         [HttpGet("GetTimeSheetAndTimeSheetDetails")]
         public IActionResult GetTimeSheetAndTimeSheetDetails(TimeSheetDetailQueryModelByInstructor query)
@@ -163,7 +383,8 @@ namespace TimeSheetManagementSystem.APIs
                                                 ratePerHour = e.RatePerHour,
                                                 customerAccountName = e.AccountName,
                                                 sessionSynopsisNames = e.SessionSynopsisNames,
-                                                status = (e.TimeInInMinutes != null) ? "updated time in/out" : "not updated"
+                                                status = (e.TimeInInMinutes != null) ? "updated time in/out" : "not updated",
+                                                createdBy = e.CreatedByName
                                             }
                    into temp
                                             orderby temp.dateOfLesson ascending
@@ -198,6 +419,8 @@ namespace TimeSheetManagementSystem.APIs
             return new JsonResult(response);
 
         }//End of GetTimeSheetAndTimeSheetDetails
+
+
 
 
 
@@ -603,6 +826,8 @@ namespace TimeSheetManagementSystem.APIs
             //The incoming end time information is in HH:MM format from the client-side. Need to do conversion
             //to total minutes from midnight
             oneTimeSheetDetail.TimeOutInMinutes = ConvertHHMMToMinutes(inFormData["actualTimeOut"]);
+            oneTimeSheetDetail.Comments = inFormData["comments"];
+
             //oneTimeSheetDetail.SessionSynopsisNames = inFormData["sessionSynopsisNames"];
 
             try

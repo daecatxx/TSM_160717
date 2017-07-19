@@ -83,24 +83,39 @@
                     <label class="control-label col-lg-3" for="sessionSynopsisNamesInput">Session Synopsis</label>
                     <div class="col-lg-6">
 
-                        <div id="sessionSynopsisNamesInput" class="input-group">
+                        <div id="sessionSynopsisNamesInput" class="input-group-lg">
 
                         </div>
                     </div>
                 </div>
+
                 <div class="form-group">
                     <label class="control-label col-lg-3" for="replacementInput">Replacement</label>
-                    <div class="col-lg-6">
+                    <div class="col-lg-3">
+                        <div class="make-switch" id="replacmentInstructorSwitch" data-on="primary" data-off="info">
+                            <input type="checkbox" id="replacementInput" name="replacementInput" class="input-md">
+                        </div>
+                        <div>
+                            <label>
+                                *Toggle On for Replacement
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                @*<div class="form-group">
+                    <label class="control-label col-md-3" for="replacementInput">Replacement</label>
+                    <div class="col-md-6">
                         <div class="make-switch" id="replacmentInstructorSwitch" data-on="primary" data-off="info">
                             <input type="checkbox" id="replacementInput" name="replacementInput">
                         </div>
                         <p>
                             <label class="col-lg">
-                                *On for Replacement and Off for Postpone
+                                *Toggle On if Replacement
                             </label>
                         </p>
                     </div>
-                </div>
+                </div>*@
 
                 <div class="form-group col-md-12">
                     <label class="control-label col-md-1"></label>
@@ -182,7 +197,11 @@
                 this.setupCustomerAccountListBox();
                 this.setupSessionSynopsisNamesListBox();
 
-                $('#dateOfLessonDatePicker').datepicker({ format: 'dd/mm/yyyy' }).on(
+                $('#dateOfLessonDatePicker').datepicker({
+                    autoclose:true,
+                    format: 'dd/mm/yyyy',
+                    container: '#dateOfLessonDatePicker'
+                }).on(
                     'changeDate', () => {
 
                         dateOfLesson = $('#dateOfLessonInput').val()
@@ -207,7 +226,7 @@
                         beforeSend: function (xhr) {
                             xhr.setRequestHeader('RequestVerificationToken', $('input[name=__RequestVerificationToken]').val());
                         },
-                        url: '/API/CustomerAccounts/GetCustomerAccounts',
+                        url: '/API/InstructorAccounts/GetInstructorAccountsByInstructor',
                         dataType: 'json',
                         contentType: 'application/json'
                     });

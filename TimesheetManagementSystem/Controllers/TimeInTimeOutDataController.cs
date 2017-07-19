@@ -32,6 +32,11 @@ namespace TimeSheetManagementSystem.Controllers
         {
             return View();
         }
+        public IActionResult ViewPreviousMonthTimeSheetData()
+        {
+            return View();
+        }
         
+
     }
 }
