@@ -33,9 +33,9 @@
                     <label class="control-label col-md-3" for="timeInInput">Time In</label>
                     <div class="col-md-4">
                         <div class="input-group bootstrap-timepicker timepicker">
-                            <input id="timeInInput" name="timeInInput" v-model="actualTimeInHHMM" type="text" class="form-control input-lg">
-                        </div>
-                        <span class="input-group-addon"><i class="glyphicon glyphicon-time"></i></span>
+                            <input id="timeInInput" name="timeInInput" v-model="actualTimeInHHMM" type="text" class="form-control input-lg" readonly="readonly">
+                            <span class="input-group-addon"><i class="glyphicon glyphicon-time"></i></span>
+ </div>
 
                     </div>
                 </div>
@@ -43,7 +43,7 @@
                     <label class="control-label col-md-3" for="timeOutInput">Time Out </label>
                     <div class="col-md-4">
                         <div class="input-group bootstrap-timepicker timepicker">
-                            <input id="timeOutInput" name="timeOutInput" v-model="actualTimeOutHHMM" type="text" class="form-control input-lg">
+                            <input id="timeOutInput" name="timeOutInput" v-model="actualTimeOutHHMM" type="text" class="form-control input-lg" readonly="readonly">
                             <span class="input-group-addon"><i class="glyphicon glyphicon-time"></i></span>
                         </div>
                     </div>

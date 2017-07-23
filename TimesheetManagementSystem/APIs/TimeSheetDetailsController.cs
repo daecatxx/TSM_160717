@@ -29,6 +29,15 @@ namespace TimeSheetManagementSystem.APIs
         public int? Month { get; set; }
         public int? Year { get; set; }
     }
+
+    public class CustomerAccountQueryModel
+    {
+        //public string? CustomerAccountName { get; set; }
+        public int? CustomerAccountId { get; set; }
+
+        public int? Month { get; set; }
+        public int? Year { get; set; }
+    }
     [Route("api/[controller]")]
     public class TimeSheetDetailsController : Controller
     {
@@ -58,6 +67,8 @@ namespace TimeSheetManagementSystem.APIs
             _logger = loggerFactory.CreateLogger<AccountController>();
         }
 
+
+
         // GET: api/GetTimeSheetAndTimeSheetDetails/
         [HttpGet("GetTimeSheetAndTimeSheetDetails")]
         public IActionResult GetTimeSheetAndTimeSheetDetails(TimeSheetDetailQueryModelByInstructor query)
@@ -70,6 +81,8 @@ namespace TimeSheetManagementSystem.APIs
                      .Where(input => (input.InstructorId == query.InstructorId) &&
                      (input.MonthAndYear.Month == query.Month) &&
                      (input.MonthAndYear.Year == query.Year)).AsNoTracking().FirstOrDefault();
+
+
             if (oneTimeSheetQueryResult == null)
             {
                 response = new
@@ -86,6 +99,7 @@ namespace TimeSheetManagementSystem.APIs
                 instructorName = oneTimeSheetQueryResult.Instructor.FullName,
                 year = oneTimeSheetQueryResult.MonthAndYear.Year,
                 month = oneTimeSheetQueryResult.MonthAndYear.Month,
+                monthName = oneTimeSheetQueryResult.MonthAndYear.ToString("MMMM"),
                 instructorId = oneTimeSheetQueryResult.InstructorId,
                 createdAt = oneTimeSheetQueryResult.CreatedAt,
                 updatedAt = oneTimeSheetQueryResult.UpdatedAt,
@@ -113,6 +127,7 @@ namespace TimeSheetManagementSystem.APIs
                                                 wageRatePerHour = e.WageRatePerHour,
                                                 ratePerHour = e.RatePerHour,
                                                 customerAccountName = e.AccountName,
+                                                comments = e.Comments,
                                                 sessionSynopsisNames = e.SessionSynopsisNames
                                             }
                    into temp
@@ -135,7 +150,9 @@ namespace TimeSheetManagementSystem.APIs
                     wageRatePerHour = oneTimeSheetDetail.WageRatePerHour,
                     ratePerHour = oneTimeSheetDetail.RatePerHour,
                     customerAccountName = oneTimeSheetDetail.AccountName,
-                    sessionSynopsisNames = oneTimeSheetDetail.SessionSynopsisNames
+                    sessionSynopsisNames = oneTimeSheetDetail.SessionSynopsisNames,
+                    comments = oneTimeSheetDetail.Comments,
+
                 });
             }//end of foreach loop which builds the timeSheetDetailList List container .
             response = new
@@ -148,6 +165,117 @@ namespace TimeSheetManagementSystem.APIs
             return new JsonResult(response);
 
         }//End of GetTimeSheetAndTimeSheetDetails
+
+        // GET: api/GetAccountTotalBillable/
+        [HttpGet("GetAccountTotalBillable")]
+        public IActionResult GetAccountTotalBillable(CustomerAccountQueryModel query)
+        {
+            List<object> timeSheetDetailList = new List<object>();
+            List<object> oneTimeSheetDataList = new List<object>();
+
+            object oneTimeSheetData = null;
+
+            object response;
+
+            var oneTimeSheetQueryResult = Database.TimeSheets
+                     .Include(input => input.TimeSheetDetails)
+                     .Where
+                     (input =>
+                     (input.ApprovedAt != null) &&
+                     (input.MonthAndYear.Month == query.Month) &&
+                     (input.MonthAndYear.Year == query.Year));
+
+            //Check if query captured the CustomerAccountId.
+            var ca = query.CustomerAccountId;
+
+
+            if (oneTimeSheetQueryResult == null)
+            {
+                response = new
+                {
+                    timeSheet = oneTimeSheetDataList,
+                    timeSheetDetails = timeSheetDetailList
+                };
+
+                return new JsonResult(response);
+            }
+           
+            foreach (var oneTD in oneTimeSheetQueryResult)
+            {
+
+                oneTimeSheetDataList.Add(new
+                {
+                    timeSheetId = oneTD.TimeSheetId,
+                    //instructorName = oneTimeSheetQueryResult.Instructor.FullName,
+                    year = oneTD.MonthAndYear.Year,
+                    month = oneTD.MonthAndYear.Month,
+                    monthName = oneTD.MonthAndYear.ToString("MMMM"),
+                    //customerAccountName = oneTimeSheetQueryR
+                    //instructorId = oneTimeSheetQueryResult.InstructorId,
+                    createdAt = oneTD.CreatedAt,
+                    updatedAt = oneTD.UpdatedAt,
+                    approvedAt = oneTD.ApprovedAt
+                });
+
+            }
+            List<TimeSheetDetail> timeSheetDetailsQueryResult = new List<TimeSheetDetail>();
+            if (oneTimeSheetQueryResult != null)
+            {
+
+                var customerAccountName = Database.CustomerAccounts
+                    .Single((input => input.CustomerAccountId == query.CustomerAccountId))
+                    .AccountName;
+
+
+
+                foreach (var oneTSData in oneTimeSheetQueryResult)
+                {
+                    timeSheetDetailsQueryResult = oneTSData.TimeSheetDetails
+                         //oneTimeSheetQueryResult.Database
+                         //.Include(input=>input.AccountName == query.CustomerAccountName)
+                         .Where
+                         //(input => (input.TimeSheetId == oneTimeSheetQueryResult.TimeSheetId) 
+                         //&&
+                         (input => input.AccountName == customerAccountName).ToList();
+
+                    //foreach (var TSDWithinMth in oneTSData)
+                    //{
+                    foreach (var oneTimeSheetDetail in timeSheetDetailsQueryResult)
+                    {
+                        timeSheetDetailList.Add(new
+                        {
+                            timeDetailSheetId = oneTimeSheetDetail.TimeSheetDetailId,
+                            dateOfLesson = oneTimeSheetDetail.DateOfLesson,
+                            officialTimeIn = oneTimeSheetDetail.OfficialTimeInMinutes,
+                            officialTimeOut = oneTimeSheetDetail.OfficialTimeOutMinutes,
+                            actualTimeIn = oneTimeSheetDetail.TimeInInMinutes,
+                            actualTimeOut = oneTimeSheetDetail.TimeOutInMinutes,
+                            wageRatePerHour = oneTimeSheetDetail.WageRatePerHour,
+                            ratePerHour = oneTimeSheetDetail.RatePerHour,
+                            customerAccountName = oneTimeSheetDetail.AccountName,
+                            sessionSynopsisNames = oneTimeSheetDetail.SessionSynopsisNames,
+                            comments = oneTimeSheetDetail.Comments,
+
+                        });
+
+                        //timeSheetDetailList.Sort(input=>input.customerAccountName)
+                    }//end of foreach loop which builds the timeSheetDetailList List container .
+                }
+
+
+            }
+
+            response = new
+            {
+                timeSheet = oneTimeSheetDataList,
+                timeSheetDetails = timeSheetDetailList
+
+            };
+
+
+
+            return new JsonResult(response);
+        }//End of GetAccountTotalBillable
 
         [HttpPost("CreateTimeSheetDetail")]
 
@@ -187,7 +315,7 @@ namespace TimeSheetManagementSystem.APIs
             var currentDateTime = DateTime.Now;
 
             var ar = Database.AccountRates
-                .Where(input => input.EffectiveStartDate <= currentDateTime) 
+                .Where(input => input.EffectiveStartDate <= currentDateTime)
                 .ToList();
 
 

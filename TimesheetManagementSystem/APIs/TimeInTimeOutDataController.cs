@@ -114,7 +114,6 @@ namespace TimeSheetManagementSystem.APIs
             int userInfoId = Database.UserInfo.Single(input => input.Email == email).UserInfoId;
 
 
-            // userFullName = "Manually Generated";// can put the name also 
         
 
             if (query.Month != null && query.Month != 0)
