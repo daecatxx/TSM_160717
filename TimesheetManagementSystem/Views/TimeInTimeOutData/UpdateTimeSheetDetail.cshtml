@@ -17,47 +17,78 @@
             <form id="dataForm" name="dataForm" role="form" class="form-horizontal">
                 <div class="form-group">
                     @*<label class="control-label col-md-3"></label>*@
-                    
-                        <div class="col-md-offset-1 col-md-12" id="unableToEditMsg" style="color:red">
-                            Signature has been given, unable to edit Time-In/Out
-                            @*<div class="col-md-4">
-                                    <div class="input-group bootstrap-timepicker timepicker">
-                                        <input id="timeInInput" name="timeInInput" v-model="actualTimeInHHMM" type="text" class="form-control input-lg">
-                                        <span class="input-group-addon"><i class="glyphicon glyphicon-time"></i></span>
-                                    </div>
-                                </div>*@
-                        
+
+                    <div class="col-md-offset-1 col-md-12" id="unableToEditMsg" style="color:red">
+                        Signature has been given, unable to edit details
+                        @*<div class="col-md-4">
+                                <div class="input-group bootstrap-timepicker timepicker">
+                                    <input id="timeInInput" name="timeInInput" v-model="actualTimeInHHMM" type="text" class="form-control input-lg">
+                                    <span class="input-group-addon"><i class="glyphicon glyphicon-time"></i></span>
+                                </div>
+                            </div>*@
+
                     </div>
                 </div>
                 <div class="form-group">
                     <label class="control-label col-md-3" for="timeInInput">Time In</label>
                     <div class="col-md-4">
                         <div class="input-group bootstrap-timepicker timepicker">
-                            <input id="timeInInput" name="timeInInput" v-model="actualTimeInHHMM" type="text" class="form-control input-lg">
+                            <input id="timeInInput" name="timeInInput" v-model="actualTimeInHHMM" type="text" class="form-control input-lg" readonly="readonly">
                             <span class="input-group-addon"><i class="glyphicon glyphicon-time"></i></span>
-                        </div>
+ </div>
+
                     </div>
                 </div>
                 <div class="form-group">
                     <label class="control-label col-md-3" for="timeOutInput">Time Out </label>
                     <div class="col-md-4">
                         <div class="input-group bootstrap-timepicker timepicker">
-                            <input id="timeOutInput" name="timeOutInput" v-model="actualTimeOutHHMM" type="text" class="form-control input-lg">
+                            <input id="timeOutInput" name="timeOutInput" v-model="actualTimeOutHHMM" type="text" class="form-control input-lg" readonly="readonly">
                             <span class="input-group-addon"><i class="glyphicon glyphicon-time"></i></span>
                         </div>
                     </div>
                 </div>
 
-
                 <div class="form-group">
-                        <label class="control-label col-lg-3" for="sessionSynopsisNamesInput">Session Synopsis</label>
+                    <label class="control-label col-md-3" for="commentsInput">Comments</label>
+                    <div class="col-md-6">
+                        <textarea class="form-control input-lg" style="max-width:600px;" id="commentsInput" name="commentsInput"
+                                  rows="3" placeholder="(Please provide comments if late...)"></textarea>
+
+                    </div>
+                </div>
+
+                @*<div class="form-group">
+                        <div class="col-lg-6">
+                            <label class="control-label col-md-3" for="sessionSynopsisNamesInput">Session Synopsis</label>
+                        </div>
                         <div class="col-lg-6">
 
-                            <div id="sessionSynopsisNamesInput" class="input-group">
-
+                            <div class="col-lg-6">
+                                <div id="sessionSynopsisNamesInput" class="input-group-lg">
+                                </div>
                             </div>
                         </div>
+                    </div>*@
+
+                <div class="form-group">
+                    <label class="control-label col-lg-3" for="sessionSynopsisNamesInput">Session Synopsis</label>
+                    <div class="col-md-6">
+
+                        <div id="sessionSynopsisNamesInput" class="input-group">
+
+                        </div>
                     </div>
+                </div>
+
+
+                @*<div class="form-group">
+                        <label class="control-label col-md-3" for="commentsInput">Comments</label>
+                        <div class="col-md-9">
+                            <textarea class="form-control input-lg" style="max-width:600px;" id="commentsInput" name="commentsInput"
+                                      rows="5" placeholder="Please provide comments if late..." ></textarea>
+                        </div>
+                    </div>*@
                 <div class="form-group col-md-12">
                     <label class="control-label col-md-1"></label>
                     <div class="col-md-10">
@@ -102,11 +133,11 @@
         var vm = new Vue({
             el: '#timeInTimeOutControlPanel',
             data: {
-                timeSheetDetailData: { timeSheetDetailId: '', dateOfLesson: '', customerAccountName: '', officialTimeInHHMM: '', officialTimeOutHHMM: '', },
+                timeSheetDetailData: { timeSheetDetailId: '', dateOfLesson: '', customerAccountName: '', officialTimeInHHMM: '', officialTimeOutHHMM: '', comments: '' },
                 moment: moment,
                 actualTimeInHHMM: '',
                 actualTimeOutHHMM: '',
-                sessionSynopsisNames: '',
+                sessionSynopsisNamesInArray: '',
             },
             mounted() {
 
@@ -115,16 +146,19 @@
                     var items = $("#sessionSynopsisNamesInput").jqxComboBox('getSelectedItems');
                     var selectedItems = [];
                     $.each(items, function (index) {
-                        selectedItems.push(this.label);
+                        selectedItems[i] = this.label;
+                        i++;
+                        //selectedItems.push(this.label);
                     });
 
-                    sessionSynopsisIdArray = selectedItems;
+                    sessionSynopsisNamesInArray = selectedItems;
 
                 });
                 this.setupSessionSynopsisNamesListBox();
                 this.loadOneTimeSheetDetailData();
 
             },
+            //props: ['sessionSynopsisList', 'sessionSynopsisNamesInArray'],
             computed: {
             },
             watch: {
@@ -147,6 +181,8 @@
                                 actualTimeIn: $("#timeInInput").val(),
                                 actualTimeOut: $("#timeOutInput").val(),
                                 //sessionSynopsisNames: $("#sessionSynopsisNamesInput").val(sessionSynopsisIdArray),
+                                comments: $("#commentsInput").val(),
+
                                 timeSheetDetailId: that.$root._data.timeSheetDetailData.timeSheetDetailId
                             },
                             contentType: 'application/x-www-form-urlencoded',
@@ -206,15 +242,15 @@
                     $requestTracker.done(function (data) {
                         console.dir(data);
                         console.dir("status:" + data.status);
-                                                
+
                         that.$root._data.timeSheetDetailData = data;
                         that.$root._data.actualTimeInHHMM = data.actualTimeInHHMM;
                         that.$root._data.actualTimeOutHHMM = data.actualTimeOutHHMM;
-
+                        that.$root._data.sessionSynopsisNamesInArray = data.sessionSynopsisNames;
 
                         if (data.status != "no_signature") {
 
-                            $("#dataForm input").prop("disabled", true);
+                            $("#dataForm input, textarea, div").prop("disabled", true);
                             //$("#dataForm").hide();
 
                             //console.dir("dataform is hidden");
@@ -225,15 +261,8 @@
                         }
 
 
-                        
- //console.dir("get ss:" + tsd);
-                        ////that.$root._data.actualTimeOutHHMM
-                        //for (index = 0; index < splitOutComma.length; index++) {
-
-                        //    selectedItems= $("#sessionSynopsisNamesInput").jqxComboBox('getSelectedItems',splitOutComma);
 
 
-                        //}
                         //console.dir("items selected:"+selectedItems);
 
                         //var
@@ -242,16 +271,24 @@
                         //var brandName = brand.brandName;
                         //var imageUrl = brand.imageUrl;
 
-                        var ss = data.sessionSynopsisNames;
+                        var ssData = data;
+
+                        var ss = ssData.sessionSynopsisNames;
                         var ssArray = ss.split(',');
-                        console.dir(ss);
+                        console.dir("session:" + ss);
                         var selectedItems = '';
 
-                       
-                        for (var i = 0; i < ssArray.length; i++) {
-                            var getSessionSynopsisNames = ssArray[i].sessionSynopsisNames;
+                        console.dir("arr? :" + ssArray);
 
-                            $("#sessionSynopsisNamesInput").jqxComboBox('selectItem', that.$root._data.sessionSynopsisNames);
+                        for (var i = 0; i < ss.length; i++) {
+
+                            var sessionSynopsisNames = ss[i].sessionSynopsisNames;
+
+                            $("#sessionSynopsisNamesInput").jqxComboBox('selectItem', sessionSynopsisNames);
+
+                            return sessionSynopsisNames;
+                            console.dir("arr: " + sessionSynopsisNames);
+
                         }
 
 
@@ -314,7 +351,8 @@
             template: 'dropdown',
             modalBackdrop: true,
             showSeconds: false,
-            showMeridian: true
+            showMeridian: true,
+
         });
         function redirect() {
             window.location.replace('/TimeInTimeOutData/ManageTimeInTimeOutData');

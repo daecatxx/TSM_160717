@@ -1,0 +1,289 @@
+﻿<style>
+    .panel-title {
+        font-size: larger;
+    }
+</style>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<div id="timeSheetManagementPanel">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="panel  panel-primary">
+                <div class="panel-heading">
+                    <div class="panel-title">
+                        Past three months Timesheets
+
+                        <select id="selectByMonth" name="selectByMonth" class="form-control input-lg"></select>
+
+                        @*<button type="button" class="btn btn highlight " data-toggle="collapse" data-target="#timeSheetDetailDataTable">View All</button>*@
+
+                    </div>
+                </div><!-- ending the div panel here -->
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <span style="float:right;margin-bottom:15px;">
+        </span>
+
+        <div id="no-more-tables">
+            <table id="timeSheetDetailDataTable"
+                   class="col-md-12 table-bordered table-striped table-condensed cf table-responsive ">
+                <thead class="cf">
+                    <tr>
+                        <th style="width:5%">Month and Year</th>
+                        <th style="width:10%">Account</th>
+                        <th style="width:3%">Lesson Date</th>
+                        <th style="width:5%">Actual Time In</th>
+                        <th style="width:5%">Actual Time Out</th>
+
+                    </tr>
+                </thead>
+                <tbody id="timeSheetDetailDataTableBody" class="timeSheetDetailDataTableBody">
+                    <tr v-for="timeSheetDetail in timeSheetDetailData">
+
+                        <td data-title="Month and Year">{{moment(timeSheetDetail.dateOfLesson).format("MMMM/YYYY")}}</td>
+                        <td data-title="Account">{{timeSheetDetail.customerAccountName}}</td>
+                        <td data-title="Lesson date">{{moment(timeSheetDetail.dateOfLesson).format("DD/MM/YYYY dddd")}}</td>
+                        <td data-title="Actual Time In">{{timeSheetDetail.actualTimeInHHMM}}</td>
+                        <td data-title="Actual Time Out">{{timeSheetDetail.actualTimeOutHHMM}}</td>
+
+
+
+                    </tr>
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+
+
+</div>
+@section scripts{
+    <!-- Material Design fonts -->
+    <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Roboto:300,400,500,700">
+    <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/icon?family=Material+Icons">
+    <link href="~/lib/bootstrap-material-design/dist/css/bootstrap-material-design.css" rel="stylesheet" />
+    <link href="~/lib/bootstrap-material-design/dist/css/ripples.css" rel="stylesheet" />
+    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="~/lib/bootstrap-material-design/dist/js/material.js"></script>
+    <script src="~/lib/bootstrap-material-design/dist/js/ripples.js"></script>
+    <script>
+
+
+
+
+        //Reference: http://fezvrasta.github.io/bootstrap-material-design/#getting-started
+        //$.material.init(); //Surprisingly, I need to place this command here so that it can work.
+        function getPreviousMonthName(previousMonthDate) {
+            var monthNameList = ["Select", "January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"
+            ];
+            var previousMonthDate = new Date(previousMonthDate);
+
+            return monthNameList[previousMonthDate.getMonth() + 1];
+        }
+
+        // for the weekDayName
+        function getDay(weekDayName) {
+
+            var weekday = new Array(7);
+            weekday[0] = "Sunday";
+            weekday[1] = "Monday";
+            weekday[2] = "Tuesday";
+            weekday[3] = "Wednesday";
+            weekday[4] = "Thursday";
+            weekday[5] = "Friday";
+            weekday[6] = "Saturday";
+
+            var _date = new Date(weekDayName);
+            return weekday[_date.getDay()];
+        }
+
+        var vm = new Vue({
+            el: '#timeSheetManagementPanel',
+            data: {
+                timeSheetDetailData: {
+
+                    timeSheetDetailId: '',
+                    dateOfLesson: '',
+                    customerAccountName: '',
+                    actualTimeInHHMM: '',
+                    actualTimeOutHHMM: '',
+
+                },
+                moment: moment,
+
+
+
+            },
+            mounted: function () {
+                this.loadTimeSheetDetailData();
+
+                //Load the timesheetdetail of the particular month in the change
+                $("#selectByMonth").change(function () { loadTimeSheetDetailDataByMonth(); });
+            },
+
+            methods: {
+
+
+                loadTimeSheetDetailData: function () {
+                    var that = this;
+                    $requestTracker = jQuery.ajax({
+                        type: 'GET',
+                        beforeSend: function (xhr) {
+                            xhr.setRequestHeader('RequestVerificationToken', $('input[name=__RequestVerificationToken]').val());
+                        },
+                        url: '/API/TimeInTimeOutData/GetPreviousMonthTimeSheetDataAndConfiguration',
+                        dataType: 'json',
+                        // data: { Month: $('#selectByMonth').val() },
+                        contentType: 'application/x-www-form-urlencoded',
+                        cache: false
+                    });
+
+                    $requestTracker.done(function (data) {
+
+                        that.$root._data.timeSheetDetailData = data.timeSheetDetails;
+
+                        var selectByMonth = $('#selectByMonth');
+
+                        var $optionElement = '';
+                        $optionElement = $('<option>')
+                            .text('View All')
+                            .attr('value', '0');
+                        selectByMonth.append($optionElement);
+
+                        // dropdown
+                        for (var i = 0; i < data.timeSheetDetails.length; i++) {
+                            var option = $("<option/>");
+                            var date = data.timeSheetDetails[i].dateOfLesson;
+                            var weekDayName = new Date(data.timeSheetDetails[i].dateOfLesson);
+                            var dateMonth = weekDayName.getMonth() + 1;
+
+                            $optionElement = $('<option>')
+                                .text(getPreviousMonthName(date))
+                                .attr('value', dateMonth);
+                            if (selectByMonth.find('option[value="' + dateMonth + '"]').length == 0) {
+                                selectByMonth.append($optionElement);
+                            }
+                        }
+                    });
+                    $requestTracker.fail(function (data, textStatus, jqXHR) {
+                        var infoFromServer = data.responseJSON.message;
+                        new Noty({
+                            theme: 'bootstrap-v3',
+                            text: infoFromServer, type: 'error',
+                            layout: 'top',
+                            onTemplate: function () {
+                                this.barDom.innerHTML = '<div class="noty_body">' + this.options.text + '</div>';
+                                // Important: .noty_body class is required for setText API method.
+                            }
+                        }).show();//end of new Noty()
+                    });//end of $saveDataHandler.fail()
+
+                }
+            }
+        });
+
+        // this function will be called when the values in the dropdown change
+        function loadTimeSheetDetailDataByMonth() {
+
+            var that = this;
+            var $requestTracker = jQuery.ajax({
+                type: 'GET',
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader('RequestVerificationToken', $('input[name=__RequestVerificationToken]').val());
+                },
+                url: '/API/TimeInTimeOutData/GetPreviousMonthTimeSheetDataAndConfiguration',
+
+
+                data: { Month: $('#selectByMonth').val() },
+
+                dataType: 'json',
+                contentType: 'application/x-www-form-urlencoded',
+                cache: false
+            });
+            $requestTracker.done(function (data) {
+
+
+
+
+                that.timeSheetDetailData = data.timeSheetDetails;
+                console.dir(data);
+
+
+                $("#timeSheetDetailDataTableBody").html(data);
+
+
+                //binding the values from controller in view
+                var index = 0;
+
+                for (index = 0; index < data.timeSheetDetails.length; index++) {
+                    var oneData = data.timeSheetDetails[index];
+                    var dateLesson = new Date(oneData.dateOfLesson);
+
+
+
+                    var formattedlessondate = dateLesson.getDate() + '/' + (dateLesson.getMonth() + 1) + '/' + dateLesson.getFullYear() + ' ' + getDay(oneData.dateOfLesson);
+                    $("#timeSheetDetailDataTableBody").append(
+                        '<tr><td data-title="Month and Year">' + getPreviousMonthName(oneData.dateOfLesson) + '/' + dateLesson.getFullYear() + '</td>' +
+                        '<td data-title="Account">' + oneData.customerAccountName + '</td>' +
+                        '<td data-title="Lesson date">' + formattedlessondate + '</td>' +
+                        '<td data-title="Actual Time In">' + oneData.actualTimeInHHMM + '</td>' +
+                        '<td data-title="Actual Time Out">' + oneData.actualTimeOutHHMM + '</td>' +
+                        '</tr >'
+
+                    );
+
+                }
+
+
+
+
+            });
+
+            $requestTracker.fail(function (data, textStatus, jqXHR) {
+                var infoFromServer = data.responseJSON.message;
+                new Noty({
+                    theme: 'bootstrap-v3',
+                    text: infoFromServer, type: 'error',
+                    layout: 'top',
+                    //onTemplate: function () {
+                    //    this.barDom.innerHTML = '<div class="noty_body">' + this.options.text + '</div>';
+                    //    // Important: .noty_body class is required for setText API method.
+                    //}
+                }).show();//end of new Noty()
+            });//end of $saveDataHandler.fail()
+
+
+        }
+
+
+
+
+
+        function setMonth(data) {
+
+            var $accountNameInputElement = $('#accountNameInput');
+
+            var $optionElement = '';
+
+
+
+            $optionElement = $('<option>')
+                .text(data)
+                .attr('value', data);
+            $accountNameInputElement.append($optionElement);
+
+        }
+
+
+
+
+
+
+
+    </script>
+}

@@ -27,5 +27,10 @@ namespace TimeSheetManagementSystem.Controllers
         {
             return View();
         }
+        public IActionResult ManageCustomerAccountsTotalBillable()
+        {
+            return View();
+        }
+        
     }
 }

@@ -1,6 +1,7 @@
 ﻿<style>
     body {
         margin-top: -40px;
+       
     }
 
     @@media (max-width: 980px) {
@@ -51,8 +52,11 @@
 <form id="searchForm">
     <table style="width:500px;" class="search-panel">
         <tr>
+            @*<td style="padding:3px;text-align:left;height:55px;vertical-align:top">
+                    <select id="instructorIdInput"></select>
+                </td>*@
             <td style="padding:3px;text-align:left;height:55px;vertical-align:top">
-                <select id="instructorIdInput"></select>
+                <select id="customerAccountIdInput"></select>
             </td>
             <td style="padding:3px;text-align:left;height:55px;vertical-align:top">
                 <select id="monthInput">
@@ -78,24 +82,24 @@
             </td>
         </tr>
     </table>
-    <div class="row" id="timeSheetControlPanelBox">
-        <div class="col-md-3">
-            <div>
-                <label class="control-label">Approve / Pending</label>
-                <div class="form-control" style="min-height:9vh;max-height:11vh">
-                    <div id="approveButton" data-toggle="modal" data-target="#confirm-approve"></div>
+    @*<div class="row" id="timeSheetControlPanelBox">
+            <div class="col-md-3">
+                <div>
+                    <label class="control-label">Approve / Pending</label>
+                    <div class="form-control" style="min-height:9vh;max-height:11vh">
+                        <div id="approveButton" data-toggle="modal" data-target="#confirm-approve"></div>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="col-md-3">
-            <div class="">
-                <label class="control-label">Approved at </label>
-                <div class="form-control" style="min-height:9vh;max-height:11vh">
-                    <div id="approveDatePlainText" class="form-control-static"></div>
+            <div class="col-md-3">
+                <div class="">
+                    <label class="control-label">Approved at </label>
+                    <div class="form-control" style="min-height:9vh;max-height:11vh">
+                        <div id="approveDatePlainText" class="form-control-static"></div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
+        </div>*@
 </form>
 <hr />
 <div id='instructorTimeSheetDetailMainBox'>
@@ -108,22 +112,22 @@
 </div>
 
 
-<div class="modal fade" id="confirm-approve" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                Set Approve/Pending status on timesheet
-            </div>
-            <div class="modal-body">
-                Continue to update the status?
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                <a class="btn btn-danger btn-ok">Continue</a>
+@*<div class="modal fade" id="confirm-approve" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    Set Approve/Pending status on timesheet
+                </div>
+                <div class="modal-body">
+                    Continue to update the status?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <a class="btn btn-danger btn-ok">Continue</a>
+                </div>
             </div>
         </div>
-    </div>
-</div>
+    </div>*@
 
 
 @section scripts{
@@ -132,6 +136,7 @@
     <link href="~/lib/jqwidgets/jqwidgets/styles/jqx.energyblue.css" rel="stylesheet" />
     <script src="~/lib/jqwidgets/jqwidgets/jqxcore.js"></script>
     <script src="~/lib/jqwidgets/jqwidgets/jqx-all.js"></script>
+
 
     <script>
         $(document).ready(function () {
@@ -147,18 +152,25 @@
             if (!(window.sessionStorage.getItem("manage_timesheetdetail_ui_state") === null)) {
                 window.viewUIState = JSON.parse(window.sessionStorage.getItem('manage_timesheetdetail_ui_state'));
             } else {
-                window.viewUIState = { instructorId: 0, month: new Date().getMonth() + 1, year: new Date().getFullYear() };
+                window.viewUIState = { customerAccountId: 0, month: new Date().getMonth() + 1, year: new Date().getFullYear() };
             }
+        
+            
+            //var timeSheetData = null;
             window.timeSheetData = null;
             window.timeSheetDetailsData = null;
             window.timeSheetDataSource = null;
-            window.timeSheetId = 0;
-            $('#timeSheetControlPanelBox').addClass('hidden-input');
-            setupInputInterface();
+            window.monthName = null;
 
-            if (window.viewUIState.instructorId != 0) {
+            //window.timeSheetId = 0;
+            //$('#timeSheetControlPanelBox').addClass('hidden-input');
+            setupInputInterface();
+            //customerAccountId = "";
+
+            if (window.viewUIState.customerAccountId) {
                 //This logic is important to prepare the grid data if the web browser was refreshed
-                obtainTimeSheetDetailsData(window.viewUIState.instructorId, window.viewUIState.month, window.viewUIState.year);
+                //obtainTimeSheetDetailsData(window.viewUIState.instructorId, window.viewUIState.month, window.viewUIState.year);
+                obtainTimeSheetDetailsData(window.viewUIState.customerAccountId, window.viewUIState.month, window.viewUIState.year);
             }
         });
 
@@ -166,13 +178,13 @@
         function setupInputInterface() {
 
             console.log(window.viewUIState)
-            $('#approveButton').jqxSwitchButton({ theme: 'bootstrap', width: '150', height: '30', checked: false, onLabel: 'Approve', offLabel: 'Pending', disabled: true });
-            $("#approveButton").on('change', function (event) {
-                var checked = event.args.check;
-                //I need this variable so that the code which works with the approve (ok and cancel button)
-                //can see the status.
-                window.isApprovedStatus = checked;
-            });
+            //$('#approveButton').jqxSwitchButton({ theme: 'bootstrap', width: '150', height: '30', checked: false, onLabel: 'Approve', offLabel: 'Pending', disabled:true });
+            //$("#approveButton").on('change', function (event) {
+            //                var checked = event.args.check;
+            //                //I need this variable so that the code which works with the approve (ok and cancel button)
+            //                //can see the status.
+            //		window.isApprovedStatus = checked;
+            //});
 
 
             $('#monthInput').jqxDropDownList({ theme: 'bootstrap', selectedIndex: 0, width: 120, height: 25 });
@@ -224,49 +236,58 @@
             $('#searchForm').on('validationSuccess', function (event) {
                 var monthValue = $('#monthInput').jqxDropDownList('val');
                 var yearValue = $('#yearInput').jqxComboBox('val');
-                var instructorId = $('#instructorIdInput').jqxDropDownList('val');
-                var uiState = { instructorId: instructorId, month: monthValue, year: yearValue };
-                obtainTimeSheetDetailsData(instructorId, monthValue, yearValue)
+                //var instructorId = $('#instructorIdInput').jqxDropDownList('val');
+                var customerAccountId = $('#customerAccountIdInput').jqxDropDownList('val');
+
+                console.dir("customer acc:" + customerAccountId);
+
+                var uiState = { customerAccountId: customerAccountId, month: monthValue, year: yearValue };
+                obtainTimeSheetDetailsData(customerAccountId, monthValue, yearValue)
                 //Write the user selected information into sessionStorage
                 window.sessionStorage.setItem('manage_timesheetdetail_ui_state', JSON.stringify(uiState));
                 //Give the button element, approveButton some data attribute information.
                 //If there is no data, the approve button should be disabled.
                 //Important note: This logic is only useful when the user clicks the Search button element.
                 //The following set of code is required else where too.
-                if (window.timeSheetData != null) {
-                    $('#approveButton').data('recordId', window.timeSheetData.timeSheetId);
-                    $('#approveButton').jqxSwitchButton({ disabled: false });
-                    $('#timeSheetControlPanelBox').removeClass('hidden-input');
-                } else {
-                    $('#approveButton').jqxSwitchButton({ disabled: true });
-                    $('#timeSheetControlPanelBox').addClass('hidden-input');
-                }
+                //if (window.timeSheetData != null) {
+                //                      $('#approveButton').data('recordId', window.timeSheetData.timeSheetId);
+                //                      //$('#approveButton').jqxSwitchButton({ disabled: false });
+                //                      $('#timeSheetControlPanelBox').removeClass('hidden-input');
+                //                  } else {
+                //                      //$('#approveButton').jqxSwitchButton({ disabled: true });
+                //                      $('#timeSheetControlPanelBox').addClass('hidden-input');
+                //                  }
             });
 
-
-
-
-
             $.ajax({
-                url: '/API/UserInfo/GetAllActiveInstructorData',
+                url: '/API/CustomerAccounts/GetCustomerAccounts',
                 type: 'GET',
                 contentType: 'application/json'
             }).done(function (data) {
                 for (index = 0; index < data.length; index++) {
-                    $('#instructorIdInput').append($('<option>' + data[index].fullName + '</option>').attr('value', data[index].instructorId));
+                    $('#customerAccountIdInput').append($('<option>' + data[index].accountName + '</option>').attr('value', data[index].customerAccountId));
                 }//for
-                $('#instructorIdInput').jqxDropDownList({ selectedIndex: 0, width: 120, height: 25 });
-                $('#instructorIdInput').jqxDropDownList('val', window.viewUIState.instructorId);
-            });
+                $('#customerAccountIdInput').jqxDropDownList({ selectedIndex: 0, width: 120, height: 25 });
+                $('#customerAccountIdInput').jqxDropDownList('val', window.viewUIState.customerAccountId);
 
+                //console.dir($(customerAccountId))
+            });
         }//setupInputInterface
 
 
+        //    function TimeSheetDetail(inTimeSheetDetailId, inActualTimeIn, inActualTimeOut, inCustomerAccountName,
+        //inDateOfLesson, inOfficialTimeIn, inOfficialTimeOut, inRatePerHour, inWageRatePerHour, inSessionSynopsisNames) {
+        //this.calculateWage = function () {
+        //		var totalHour = (this.actualTimeOut - this.actualTimeIn) / 60;
+        //		var result = parseFloat((totalHour * this.ratePerHour) * (this.wageRatePerHour / 100)).toFixed(2);
+        //		return result;
+        //};
+
         function TimeSheetDetail(inTimeSheetDetailId, inActualTimeIn, inActualTimeOut, inCustomerAccountName,
-            inDateOfLesson, inOfficialTimeIn, inOfficialTimeOut, inRatePerHour, inWageRatePerHour, inSessionSynopsisNames) {
+            inDateOfLesson, inOfficialTimeIn, inOfficialTimeOut, inRatePerHour, /*inWageRatePerHour, inSessionSynopsisNames*/) {
             this.calculateWage = function () {
                 var totalHour = (this.actualTimeOut - this.actualTimeIn) / 60;
-                var result = parseFloat((totalHour * this.ratePerHour) * (this.wageRatePerHour / 100)).toFixed(2);
+                var result = parseFloat((totalHour * this.ratePerHour)).toFixed(2);
                 return result;
             };
             this.calculateTotalHour = function () {
@@ -287,14 +308,14 @@
             };
             this.actualTimeIn = inActualTimeIn;
             this.actualTimeOut = inActualTimeOut;
-            this.customerAccountName = inCustomerAccountName;
+            this.customerAccountName = inCustomerAccountName; //chged id to name
             this.dateOfLesson = inDateOfLesson;
             this.officialTimeIn = inOfficialTimeIn;
             this.officialTimeOut = inOfficialTimeOut;
             this.ratePerHour = inRatePerHour;
-            this.sessionSynopsisNames = inSessionSynopsisNames;
+            //this.sessionSynopsisNames = inSessionSynopsisNames;
             this.timeSheetDetailId = inTimeSheetDetailId;
-            this.wageRatePerHour = inWageRatePerHour;
+            //this.wageRatePerHour = inWageRatePerHour;
 
             this.actualTimeInHHMM = this.getTimeFromMins(this.actualTimeIn);
             this.actualTimeOutHHMM = this.getTimeFromMins(this.actualTimeOut);
@@ -313,39 +334,58 @@
             return itIsNumber;
 
         }//validateYear
-        function obtainTimeSheetDetailsData(inInstructorId, inMonth, inYear) {
+        function obtainTimeSheetDetailsData(inCustomerAccountId, inMonth, inYear) {
             $commTracker = $.ajax({
-                url: '/API/TimeSheetDetails/GetTimeSheetAndTimeSheetDetails/',
+                url: '/API/TimeSheetDetails/GetAccountTotalBillable/',
                 type: 'GET',
-                data: { instructorId: inInstructorId, month: inMonth, year: inYear },
+                data: { customerAccountId: inCustomerAccountId, month: inMonth, year: inYear },
                 dataType: 'json',
                 cache: false
             });
             $commTracker.done(function (data) {
+                console.dir(data);
+                
+
                 window.timeSheetData = data.timeSheet;
+
+                console.log(timeSheetData[0]);
+                //window.timeSheetData 
                 window.timeSheetDetailsData = data.timeSheetDetails;
+
+
+                //for (var i = 0; i < window.timeSheetData.length; i++) {
+                //    console.log(window.timeSheetData[i].monthName);
+                    
+                //    return window.monthName = window.timeSheetData[i].monthName;
+
+                //    //return window.monthName = ;
+                //    }
+
+                //console.log(window.monthName);
+
                 prepareGridInterface();
                 //The following logic is only working if there is timesheet data available.
-                if (window.timeSheetData != null) {
-                    $('#approveButton').jqxSwitchButton({ disabled: false });
-                    $('#timeSheetControlPanelBox').removeClass('hidden-input');
-                    //I need to have this logic over here to set the switch button
-                    //to reflect the approve pending status of the timesheet
-                    if (window.timeSheetData.approvedAt != null) {
-                        $('#approveButton').jqxSwitchButton('check');
-                    } else {
-                        $('#approveButton').jqxSwitchButton('unCheck');
-                    }
-                } else {
-                    $('#approveButton').jqxSwitchButton({ disabled: true });
-                    $('#timeSheetControlPanelBox').addClass('hidden-input');
-                }
+                //                if (window.timeSheetData != null) {
+                //                    $('#approveButton').jqxSwitchButton({ disabled: false });
+                //                    $('#timeSheetControlPanelBox').removeClass('hidden-input');
+                ////I need to have this logic over here to set the switch button
+                ////to reflect the approve pending status of the timesheet
+                //if (window.timeSheetData.approvedAt != null) {
+                //		$('#approveButton').jqxSwitchButton('check');
+                //} else {
+                //		$('#approveButton').jqxSwitchButton('unCheck');
+                //}
+                //                } else {
+                //                    $('#approveButton').jqxSwitchButton({ disabled: true });
+                //                    $('#timeSheetControlPanelBox').addClass('hidden-input');
+                //                }
             })
 
         }//end of obtainTimeSheetDetailsData
 
         function prepareGridInterface() {
             window.timeSheetDetailList = [];
+
             var index = 0;
             for (index = 0; index < window.timeSheetDetailsData.length; index++) {
                 var oneData = window.timeSheetDetailsData[index];
@@ -353,8 +393,11 @@
                     oneData.actualTimeOut, oneData.customerAccountName,
                     oneData.dateOfLesson, oneData.officialTimeIn, oneData.officialTimeOut,
                     oneData.ratePerHour, oneData.wageRatePerHour, oneData.sessionSynopsisNames));
-
+                console.dir("c.a:" + oneData.customerAccountName);
             }
+
+            //console.dir("c.a:" + oneData.customerAccountName);
+
             var source =
                 {
                     datatype: 'json',
@@ -369,12 +412,11 @@
                         { name: 'actualTimeOutHHMM', type: 'string' },
                         { name: 'actualTimeIn', type: 'int' },
                         { name: 'actualTimeOut', type: 'int' },
-                        { name: 'sessionSynopsisNames', type: 'string' },
+                        //{ name: 'sessionSynopsisNames', type: 'string' },
                         { name: 'ratePerHour', type: 'number' },
-                        { name: 'wageRatePerHour', type: 'number' },
+                        //{ name: 'wageRatePerHour', type: 'number' },
                         { name: 'calculatedTotalHour', type: 'number' },
                         { name: 'calculatedWage', type: 'number' },
-                        { name: 'comments', type: 'string' },
                     ],
                     id: 'timeSheetDetailId',
                     localdata: window.timeSheetDetailList
@@ -408,6 +450,8 @@
 
                 }
             }
+
+
             headerRenderer = function (defaultText, alignment, height) {
 
                 return '<div style="float:left;margin-top:5px;margin-left:4px;width:100%;word-wrap: break-word;">' + defaultText + '</div>';
@@ -415,9 +459,11 @@
 
             var wageCellRender = function (index, datafield, value, defaultvalue, column, rowData) {
                 console.dir(rowData);
-                return '<div style="margin: 4px;  background-color: #afd0ef;" class="jqx-left-align" >' + value + '</div>';
 
+                return '<div style="margin: 4px;  background-color: #afd0ef;" class="jqx-left-align" >' + value + '</div>';
+                //length(rowData);
             };
+
             var totalHourOfServiceRender = function (index, datafield, value, defaultvalue, column, rowData) {
                 return '<div style="margin: 4px;  background-color: #efd0ef;" class="jqx-left-align" >' + value + '</div>';
 
@@ -434,14 +480,29 @@
                         toolbar.empty();
                         var $container = $("<div style='margin: 5px;'></div>");
                         var $span = $("<span style='float: left; margin-top: 5px; margin-right: 4px;'></span>");
-                        if (window.timeSheetData != null) {
-                            $span.text('Timesheet of ' + window.timeSheetData.instructorName + ' for ' +
-                                window.timeSheetData.monthName + ' (' + window.timeSheetData.year + ')');
 
-                            console.dir("TS:" + window.timeSheetData.instructorName)
+                        console.dir("check ts: " + timeSheetData)
 
+
+                        for (var i = 0; i < window.timeSheetData.length; i++) {
+                            console.log(window.timeSheetData[i].monthName);
+
+                            window.monthName = window.timeSheetData[i].monthName;
+                            window.year = window.timeSheetData[i].year;
+
+                            //return window.monthName = window.timeSheetData[i].monthName;
+
+                            //return window.monthName = ;
                         }
 
+                        console.log(window.monthName);
+                        //console.log(customerAccountName);
+                        console.log("TSD c.a: " + oneData.customerAccountName);
+
+                        if (window.timeSheetData != null) {
+                            $span.text('Total billable of ' + oneData.customerAccountName
+                                + ' for ' + window.monthName + ' (' + window.year + ')');
+                        }
 
                         toolbar.append($container);
                         $container.append($span);
@@ -455,14 +516,14 @@
                     columnsheight: 50,
                     theme: 'energyblue',
                     columns: [
-                        { text: 'Account name', datafield: 'customerAccountName', width: 130, renderer: headerRenderer },
+                        { text: 'Account name', datafield: 'customerAccountName', width: 135, renderer: headerRenderer },
                         { text: 'Date of lesson', datafield: 'dateOfLesson', width: 140, cellsformat: 'ddd - d/M/yyyy', renderer: headerRenderer },
-                        { text: 'Start time', datafield: 'officialTimeInHHMM', width: 110, renderer: headerRenderer },
-                        { text: 'End time', datafield: 'officialTimeOutHHMM', width: 110, renderer: headerRenderer },
-                        { text: 'Time in', datafield: 'actualTimeInHHMM', width: 110, cellsrenderer: actualTimeInCellRenderer, renderer: headerRenderer },
-                        { text: 'Time out', datafield: 'actualTimeOutHHMM', width: 110, renderer: headerRenderer, cellsrenderer: actualTimeOutCellRenderer },
+                        { text: 'Lesson start time', datafield: 'officialTimeInHHMM', width: 130, renderer: headerRenderer },
+                        { text: 'Lesson end time', datafield: 'officialTimeOutHHMM', width: 130, renderer: headerRenderer },
+                        { text: 'Actual time in', datafield: 'actualTimeInHHMM', width: 100, cellsrenderer: actualTimeInCellRenderer, renderer: headerRenderer },
+                        { text: 'Actual time out', datafield: 'actualTimeOutHHMM', width: 130, renderer: headerRenderer, cellsrenderer: actualTimeOutCellRenderer },
                         {
-                            text: 'Total Hrs',
+                            text: 'Total Hours',
                             renderer: headerRenderer,
                             datafield: 'calculatedTotalHour',
                             editable: false,
@@ -480,8 +541,8 @@
                                 return renderstring;
                             }
                         },
-                        { text: '<span style="font-weight:bold";>'+ 'Rate/hour' +'</span>', datafield: 'ratePerHour', width: 115, renderer: headerRenderer, cellsformat: 'd2' },
-                        { text: 'Wage Rate/hour', datafield: 'wageRatePerHour', width: 140, renderer: headerRenderer, cellsformat: 'p' },
+                        { text: 'Rate/hour', datafield: 'ratePerHour', width: 140, renderer: headerRenderer, cellsformat: 'd2' },
+                        //{ text: 'Wage Rate per hour', datafield: 'wageRatePerHour', width: 140, renderer: headerRenderer, cellsformat: 'p'},
                         {
                             text: 'Calculated wage',
                             datafield: 'calculatedWage',
@@ -489,7 +550,7 @@
                             renderer: headerRenderer,
                             cellsformat: 'f2',
                             editable: false,
-                            width: 130,
+                            width: 140,
                             cellsalign: 'left',
                             aggregates: ['sum'],
                             aggregatesrenderer: function (aggregates, column, element, summaryData) {
@@ -502,12 +563,12 @@
                                 return renderstring;
                             }
                         },
-                        { text: 'Session Synopses', datafield: 'sessionSynopsisNames', width: 150, renderer: headerRenderer },
-                        { text: 'Comments', datafield: 'comments', width: 175 }
-
-
+                        //{ text: 'Session Synopses', datafield: 'sessionSynopsisNames', width: 150, renderer: headerRenderer }
                     ]
                 });
+
+        
+
             if (window.timeSheetData != null) {
                 if (window.timeSheetData.approvedAt == null) {
                     $('#approveDatePlainText').text('N.A.');
@@ -538,6 +599,7 @@
             var $modalDiv = $(e.delegateTarget);
             var id = $(this).data('recordId');
 
+           
 
             var isApprovedStatus = window.isApprovedStatus;
             $modalDiv.addClass('loading');
